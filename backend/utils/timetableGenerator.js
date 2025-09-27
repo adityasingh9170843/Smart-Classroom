@@ -1,11 +1,13 @@
 import { GoogleGenAI } from '@google/genai';
-import Course from '../models/Course.js';
+import Course from '../models/course.js';
 import Faculty from '../models/Faculty.js';
 import Room from '../models/Room.js';
 import Timetable from '../models/Timetable.js';
 import Notification from '../models/Notification.js';
 
-const ai = new GoogleGenAI();
+const ai = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_API_KEY,
+});
 
 export async function generateTimetableWithAI(request) {
   try {

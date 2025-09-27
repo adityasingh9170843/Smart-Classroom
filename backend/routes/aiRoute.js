@@ -2,7 +2,8 @@ import { Router } from "express";
 import { GoogleGenAI } from "@google/genai";
 
 export const aiRouter = Router();
-const ai = new GoogleGenAI();
+const ai = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_API_KEY,});
 
 aiRouter.post("/chat", async (req, res) => {
   try {
