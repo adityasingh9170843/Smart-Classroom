@@ -1,211 +1,119 @@
-"use client"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
-import React, { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { X } from "lucide-react"
-
-export function CourseForm({ onSubmit, loading = false }) {
-  const [formData, setFormData] = useState({
-    name: "",
+export function CourseForm({ initialData = null, onSubmit, loading }) {
+  const defaultData = {
     code: "",
-    credits: 3,
+    name: "",
     department: "",
+    credits: 3,
     semester: 1,
-    year: new Date().getFullYear(),
-    description: "",
-    prerequisites: [],
-  })
-  const [prerequisiteInput, setPrerequisiteInput] = useState("")
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    await onSubmit(formData)
-    // Reset form
-    setFormData({
-      name: "",
-      code: "",
-      credits: 3,
-      department: "",
-      semester: 1,
-      year: new Date().getFullYear(),
-      description: "",
-      prerequisites: [],
-    })
-    setPrerequisiteInput("")
-  }
+  const [formData, setFormData] = useState(defaultData);
 
-  const addPrerequisite = () => {
-    if (prerequisiteInput.trim() && !formData.prerequisites.includes(prerequisiteInput.trim())) {
-      setFormData((prev) => ({
-        ...prev,
-        prerequisites: [...prev.prerequisites, prerequisiteInput.trim()],
-      }))
-      setPrerequisiteInput("")
+  // Prefill form when editing — reset to defaults when initialData is null
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        code: initialData.code || "",
+        name: initialData.name || "",
+        department: initialData.department || "",
+        credits: initialData.credits ?? 3,
+        semester: initialData.semester ?? 1,
+      });
+    } else {
+      setFormData(defaultData);
     }
-  }
+  }, [initialData]);
 
-  const removePrerequisite = (prerequisite) => {
-    setFormData((prev) => ({
-      ...prev,
-      prerequisites: prev.prerequisites.filter((p) => p !== prerequisite),
-    }))
-  }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: name === "credits" || name === "semester" ? Number(value) : value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Add New Course</CardTitle>
-        <CardDescription>Create a new course for the academic schedule</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name & Code */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Course Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Data Structures and Algorithms"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="code">Course Code</Label>
-              <Input
-                id="code"
-                value={formData.code}
-                onChange={(e) => setFormData((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                placeholder="e.g., CS201"
-                required
-              />
-            </div>
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Course Code */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Course Code</label>
+        <input
+          type="text"
+          name="code"
+          value={formData.code}
+          onChange={handleChange}
+          required
+          className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-          {/* Credits, Semester, Year */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="credits">Credits</Label>
-              <Select
-                value={formData.credits.toString()}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, credits: parseInt(value) }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5].map((c) => (
-                    <SelectItem key={c} value={c.toString()}>
-                      {c} Credit{c > 1 ? "s" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="semester">Semester</Label>
-              <Select
-                value={formData.semester.toString()}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, semester: parseInt(value) }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
-                    <SelectItem key={sem} value={sem.toString()}>
-                      Semester {sem}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="year">Year</Label>
-              <Input
-                id="year"
-                type="number"
-                value={formData.year}
-                onChange={(e) => setFormData((prev) => ({ ...prev, year: parseInt(e.target.value) }))}
-                min="2020"
-                max="2030"
-                required
-              />
-            </div>
-          </div>
+      {/* Course Name */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Course Name</label>
+        <input
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-          {/* Department */}
-          <div className="space-y-2">
-            <Label htmlFor="department">Department</Label>
-            <Select
-              value={formData.department}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, department: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select department" />
-              </SelectTrigger>
-              <SelectContent>
-                {["Computer Science", "Mathematics", "Physics", "Chemistry", "Biology", "Engineering", "Business"].map(
-                  (dep) => (
-                    <SelectItem key={dep} value={dep}>
-                      {dep}
-                    </SelectItem>
-                  )
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Department */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
+        <input
+          type="text"
+          name="department"
+          value={formData.department}
+          onChange={handleChange}
+          required
+          className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-              placeholder="Brief description of the course content and objectives"
-              rows={3}
-            />
-          </div>
+      {/* Credits */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Credits</label>
+        <input
+          type="number"
+          name="credits"
+          value={formData.credits}
+          onChange={handleChange}
+          required
+          min="1"
+          className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-          {/* Prerequisites */}
-          <div className="space-y-2">
-            <Label>Prerequisites</Label>
-            <div className="flex gap-2">
-              <Input
-                value={prerequisiteInput}
-                onChange={(e) => setPrerequisiteInput(e.target.value)}
-                placeholder="e.g., CS101"
-                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addPrerequisite())}
-              />
-              <Button type="button" onClick={addPrerequisite} variant="outline">
-                Add
-              </Button>
-            </div>
-            {formData.prerequisites.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.prerequisites.map((pre) => (
-                  <Badge key={pre} variant="secondary" className="flex items-center gap-1">
-                    {pre}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => removePrerequisite(pre)} />
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
+      {/* Semester */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Semester</label>
+        <input
+          type="number"
+          name="semester"
+          value={formData.semester}
+          onChange={handleChange}
+          required
+          min="1"
+          className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Creating..." : "Create Course"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  )
+      {/* Submit Button */}
+      <Button
+        type="submit"
+        disabled={loading}
+        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md"
+      >
+        {loading ? "Saving..." : initialData ? "Update Course" : "Add Course"}
+      </Button>
+    </form>
+  );
 }

@@ -1,95 +1,137 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import axios from "axios"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { CourseForm } from "@/components/CourseForm"
-import { DataTable } from "@/components/Data-table"
-import { Plus, BookOpen, Users, Calendar, LayoutDashboard, Home, Bell } from "lucide-react"
-import { Link } from "react-router-dom"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CourseForm } from "@/components/CourseForm";
+import { DataTable } from "@/components/Data-table";
+import {
+  Plus,
+  BookOpen,
+  Users,
+  Calendar,
+  LayoutDashboard,
+  Home,
+  Bell,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [formLoading, setFormLoading] = useState(false)
-  const [activeNavItem, setActiveNavItem] = useState('courses')
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+  const [activeNavItem, setActiveNavItem] = useState("courses");
+  const [editingCourse, setEditingCourse] = useState(null); // <-- added
 
   const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
-    { id: 'courses', label: 'Courses', icon: BookOpen, path: '/courses' },
-    { id: 'faculty', label: 'Faculty', icon: Users, path: '/faculty' },
-    { id: 'rooms', label: 'Rooms', icon: Home, path: '/rooms' },
-    { id: 'timetables', label: 'Timetables', icon: Calendar, path: '/timetables' },
-    { id: 'notifications', label: 'Notifications', icon: Bell, path: '/notifications' },
-  ]
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/" },
+    { id: "courses", label: "Courses", icon: BookOpen, path: "/courses" },
+    { id: "faculty", label: "Faculty", icon: Users, path: "/faculty" },
+    { id: "rooms", label: "Rooms", icon: Home, path: "/rooms" },
+    {
+      id: "timetables",
+      label: "Timetables",
+      icon: Calendar,
+      path: "/timetables",
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: Bell,
+      path: "/notifications",
+    },
+  ];
 
   // Fetch courses from backend
   const fetchCourses = async () => {
     try {
-      setLoading(true)
-      const res = await axios.get("http://localhost:5000/api/courses/")
-      setCourses(res.data)
+      setLoading(true);
+      const res = await axios.get("http://localhost:5000/api/courses/");
+      setCourses(res.data);
     } catch (err) {
-      console.error("Failed to fetch courses:", err)
+      console.error("Failed to fetch courses:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchCourses()
-  }, [])
+    fetchCourses();
+  }, []);
 
   // Create a new course
   const handleCreateCourse = async (courseData) => {
     try {
-      setFormLoading(true)
-      await axios.post("http://localhost:5000/api/courses/", courseData)
-      setShowForm(false)
-      fetchCourses() 
+      setFormLoading(true);
+      await axios.post("http://localhost:5000/api/courses/", courseData);
+      setShowForm(false);
+      setEditingCourse(null);
+      fetchCourses();
     } catch (error) {
-      console.error("Failed to create course:", error)
+      console.error("Failed to create course:", error);
     } finally {
-      setFormLoading(false)
+      setFormLoading(false);
     }
-  }
+  };
 
   // Update a course
   const handleUpdateCourse = async (id, courseData) => {
     try {
-      await axios.put(`http://localhost:5000/api/courses/${id}`, courseData)
-      fetchCourses()
+      setFormLoading(true);
+      await axios.put(`http://localhost:5000/api/courses/${id}`, courseData);
+      setEditingCourse(null);
+      setShowForm(false);
+      fetchCourses();
     } catch (error) {
-      console.error("Failed to update course:", error)
+      console.error("Failed to update course:", error);
+    } finally {
+      setFormLoading(false);
     }
-  }
+  };
 
   // Delete a course
   const handleDeleteCourse = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/courses/${id}`)
-      fetchCourses()
+      await axios.delete(`http://localhost:5000/api/courses/${id}`);
+      // if deleting the currently editing course, clear form
+      if (editingCourse && editingCourse._id === id) {
+        setEditingCourse(null);
+        setShowForm(false);
+      }
+      fetchCourses();
     } catch (error) {
-      console.error("Failed to delete course:", error)
+      console.error("Failed to delete course:", error);
     }
-  }
+  };
 
-  // DataTable columns
+  // DataTable columns (note: key for semester is "semester")
   const columns = [
     {
       key: "code",
       label: "Course Code",
       sortable: true,
-      render: (course) => <div className="font-mono font-semibold text-slate-800">{course.code}</div>,
+      render: (course) => (
+        <div className="font-mono font-semibold text-slate-800">
+          {course.code}
+        </div>
+      ),
     },
     {
       key: "name",
       label: "Course Name",
       sortable: true,
-      render: (course) => <div className="font-medium text-slate-800">{course.name}</div>,
+      render: (course) => (
+        <div className="font-medium text-slate-800">{course.name}</div>
+      ),
     },
     {
       key: "department",
@@ -107,47 +149,33 @@ export default function CoursesPage() {
       ),
     },
     {
-      key: "duration",
-      label: "Duration (hrs)",
-      render: (course) => <div className="text-slate-700">{course.duration}</div>,
-    },
-    {
-      key: "type",
-      label: "Type",
-      render: (course) => <div className="text-slate-700">{course.type}</div>,
-    },
-    {
-      key: "capacity",
-      label: "Capacity",
-      render: (course) => <div className="text-slate-700">{course.capacity}</div>,
-    },
-    {
-      key: "requirements",
-      label: "Requirements",
+      key: "semester", // <-- must match actual field name
+      label: "Semester",
       render: (course) => (
-        <div className="text-sm text-slate-600">
-          <div>Room: {course.requirements?.roomType || "N/A"}</div>
-          {course.requirements?.equipment?.length > 0 && (
-            <div>Equipment: {course.requirements.equipment.join(", ")}</div>
-          )}
-        </div>
+        <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+          {course.semester}
+        </Badge>
       ),
     },
+
     {
       key: "actions",
       label: "Actions",
       render: (course) => (
         <div className="flex gap-2">
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             variant="outline"
             className="border-slate-300 bg-white hover:bg-blue-50 text-slate-700 hover:border-blue-300 hover:text-blue-700 transition-all duration-300"
-            onClick={() => handleUpdateCourse(course._id, course)}
+            onClick={() => {
+              setEditingCourse(course);    // open edit mode
+              setShowForm(true);
+            }}
           >
             Edit
           </Button>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             variant="outline"
             className="border-red-300 bg-white hover:bg-red-50 text-red-600 hover:border-red-400 hover:text-red-700 transition-all duration-300"
             onClick={() => handleDeleteCourse(course._id)}
@@ -157,7 +185,7 @@ export default function CoursesPage() {
         </div>
       ),
     },
-  ]
+  ];
 
   if (loading) {
     return (
@@ -168,12 +196,15 @@ export default function CoursesPage() {
             <div className="h-8 bg-slate-200/50 animate-pulse rounded-xl w-32" />
             <div className="space-y-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-10 bg-slate-200/30 animate-pulse rounded-lg" />
+                <div
+                  key={i}
+                  className="h-10 bg-slate-200/30 animate-pulse rounded-lg"
+                />
               ))}
             </div>
           </div>
         </div>
-        
+
         {/* Main Content Loading */}
         <div className="flex-1 p-8">
           <div className="max-w-7xl mx-auto space-y-8">
@@ -183,7 +214,7 @@ export default function CoursesPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -207,28 +238,38 @@ export default function CoursesPage() {
           {/* Navigation */}
           <nav className="space-y-2">
             {navigationItems.map((item) => {
-              const IconComponent = item.icon
-              const isActive = activeNavItem === item.id
+              const IconComponent = item.icon;
+              const isActive = activeNavItem === item.id;
               return (
-                <Link 
-                  key={item.id} 
+                <Link
+                  key={item.id}
                   to={item.path}
                   onClick={() => setActiveNavItem(item.id)}
                 >
                   <div
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group cursor-pointer ${
                       isActive
-                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-600/25'
-                        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-600/25"
+                        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
-                    <IconComponent className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-700'} group-hover:scale-110`} />
-                    <span className={`font-medium transition-colors duration-300 ${isActive ? 'text-white' : ''}`}>
+                    <IconComponent
+                      className={`w-5 h-5 transition-transform duration-300 ${
+                        isActive
+                          ? "text-white"
+                          : "text-slate-500 group-hover:text-slate-700"
+                      } group-hover:scale-110`}
+                    />
+                    <span
+                      className={`font-medium transition-colors duration-300 ${
+                        isActive ? "text-white" : ""
+                      }`}
+                    >
                       {item.label}
                     </span>
                   </div>
                 </Link>
-              )
+              );
             })}
           </nav>
         </div>
@@ -241,7 +282,9 @@ export default function CoursesPage() {
                 <Users className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-800 truncate">Admin User</p>
+                <p className="text-sm font-medium text-slate-800 truncate">
+                  Admin User
+                </p>
                 <p className="text-xs text-slate-500">System Administrator</p>
               </div>
             </div>
@@ -259,11 +302,15 @@ export default function CoursesPage() {
                 Courses
               </h1>
               <p className="text-lg text-slate-600 max-w-2xl leading-relaxed">
-                Manage academic courses and their details. Add, edit, and organize course information efficiently.
+                Manage academic courses and their details. Add, edit, and
+                organize course information efficiently.
               </p>
             </div>
-            <Button 
-              onClick={() => setShowForm(!showForm)}
+            <Button
+              onClick={() => {
+                setEditingCourse(null); // clear editing (add mode)
+                setShowForm(!showForm);
+              }}
               className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3"
             >
               <Plus className="h-5 w-5 mr-2" />
@@ -271,15 +318,29 @@ export default function CoursesPage() {
             </Button>
           </div>
 
-          {/* Add Course Form */}
+          {/* Add/Edit Course Form */}
           {showForm && (
             <Card className="bg-white/80 backdrop-blur-sm border-slate-200/50 shadow-lg">
               <CardHeader className="border-b border-slate-200/50 p-6">
-                <CardTitle className="text-xl font-semibold text-slate-800">Add New Course</CardTitle>
-                <CardDescription className="text-slate-600">Fill in the course details below</CardDescription>
+                <CardTitle className="text-xl font-semibold text-slate-800">
+                  {editingCourse ? "Edit Course" : "Add New Course"}
+                </CardTitle>
+                <CardDescription className="text-slate-600">
+                  Fill in the course details below
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                <CourseForm onSubmit={handleCreateCourse} loading={formLoading} />
+                <CourseForm
+                  initialData={editingCourse}
+                  onSubmit={(data) => {
+                    if (editingCourse) {
+                      handleUpdateCourse(editingCourse._id, data);
+                    } else {
+                      handleCreateCourse(data);
+                    }
+                  }}
+                  loading={formLoading}
+                />
               </CardContent>
             </Card>
           )}
@@ -303,11 +364,11 @@ export default function CoursesPage() {
             </CardHeader>
             <CardContent className="p-6">
               <div className="bg-white/60 rounded-xl border border-slate-200/50 overflow-hidden">
-                <DataTable 
-                  data={courses} 
-                  columns={columns} 
-                  searchKey="name" 
-                  loading={loading} 
+                <DataTable
+                  data={courses}
+                  columns={columns}
+                  searchKey="name"
+                  loading={loading}
                 />
               </div>
             </CardContent>
@@ -315,5 +376,5 @@ export default function CoursesPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
