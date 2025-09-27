@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { db } from "../database"
+import Timetable from "../models/Timetable.js"
 import { optimizeTimetableWithAI, generateTimetableWithAI } from "../utils/timetableGenerator"
 export const timetablesRouter = Router()
 
