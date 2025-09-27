@@ -1,12 +1,13 @@
 import { Router } from "express"
 import Timetable from "../models/Timetable.js"
-import { optimizeTimetableWithAI, generateTimetableWithAI } from "../utils/timetableGenerator"
+import { optimizeTimetableWithAI, generateTimetableWithAI } from "../utils/timetableGenerator.js"
+
 export const timetablesRouter = Router()
 
 
 timetablesRouter.get("/", async (req, res) => {
   try {
-    const timetables = await db.getTimetables()
+    const timetables = await Timetable.find()
     res.json(timetables)
   } catch (error) {
     console.error("Error fetching timetables:", error)
@@ -17,10 +18,8 @@ timetablesRouter.get("/", async (req, res) => {
 
 timetablesRouter.get("/:id", async (req, res) => {
   try {
-    const timetable = await db.getTimetable(req.params.id)
-    if (!timetable) {
-      return res.status(404).json({ error: "Timetable not found" })
-    }
+    const timetable = await Timetable.findById(req.params.id)
+    if (!timetable) return res.status(404).json({ error: "Timetable not found" })
     res.json(timetable)
   } catch (error) {
     console.error("Error fetching timetable:", error)
@@ -28,10 +27,10 @@ timetablesRouter.get("/:id", async (req, res) => {
   }
 })
 
-
 timetablesRouter.post("/", async (req, res) => {
   try {
-    const timetable = await db.createTimetable(req.body)
+    const timetable = new Timetable(req.body)
+    await timetable.save()
     res.status(201).json(timetable)
   } catch (error) {
     console.error("Error creating timetable:", error)
@@ -42,10 +41,8 @@ timetablesRouter.post("/", async (req, res) => {
 
 timetablesRouter.put("/:id", async (req, res) => {
   try {
-    const timetable = await db.updateTimetable(req.params.id, req.body)
-    if (!timetable) {
-      return res.status(404).json({ error: "Timetable not found" })
-    }
+    const timetable = await Timetable.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    if (!timetable) return res.status(404).json({ error: "Timetable not found" })
     res.json(timetable)
   } catch (error) {
     console.error("Error updating timetable:", error)
@@ -53,13 +50,10 @@ timetablesRouter.put("/:id", async (req, res) => {
   }
 })
 
-
 timetablesRouter.delete("/:id", async (req, res) => {
   try {
-    const deleted = await db.deleteTimetable(req.params.id)
-    if (!deleted) {
-      return res.status(404).json({ error: "Timetable not found" })
-    }
+    const timetable = await Timetable.findByIdAndDelete(req.params.id)
+    if (!timetable) return res.status(404).json({ error: "Timetable not found" })
     res.status(204).send()
   } catch (error) {
     console.error("Error deleting timetable:", error)
@@ -71,7 +65,7 @@ timetablesRouter.delete("/:id", async (req, res) => {
 timetablesRouter.post("/generate", async (req, res) => {
   try {
     const result = await generateTimetableWithAI(req.body)
-    res.json(result)
+    res.json(result || {})
   } catch (error) {
     console.error("Error generating timetable:", error)
     res.status(500).json({ error: "Failed to generate timetable" })
@@ -81,13 +75,11 @@ timetablesRouter.post("/generate", async (req, res) => {
 
 timetablesRouter.post("/:id/optimize", async (req, res) => {
   try {
-    const timetable = await db.getTimetable(req.params.id)
-    if (!timetable) {
-      return res.status(404).json({ error: "Timetable not found" })
-    }
+    const timetable = await Timetable.findById(req.params.id)
+    if (!timetable) return res.status(404).json({ error: "Timetable not found" })
 
     const result = await optimizeTimetableWithAI(timetable)
-    res.json(result)
+    res.json(result || {})
   } catch (error) {
     console.error("Error optimizing timetable:", error)
     res.status(500).json({ error: "Failed to optimize timetable" })
