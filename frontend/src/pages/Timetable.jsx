@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import axios from "axios"
 import { Link } from "react-router-dom"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Trash2,
   Sparkles,
@@ -23,9 +22,9 @@ import {
   Users as UsersIcon,
   Home as HomeIcon,
   Bell,
-  Plus,
 } from "lucide-react"
 
+// Axios configuration
 const api = axios.create({
   baseURL: "http://localhost:5000/api",
   headers: {
@@ -33,7 +32,6 @@ const api = axios.create({
   },
 })
 
-// Interceptors remain the same
 api.interceptors.request.use(
   (config) => {
     console.log(`Making ${config.method?.toUpperCase()} request to ${config.url}`)
@@ -44,8 +42,11 @@ api.interceptors.request.use(
     return Promise.reject(error)
   },
 )
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response
+  },
   (error) => {
     console.error("API Error:", error.response?.data || error.message)
     return Promise.reject(error)
@@ -63,7 +64,6 @@ const TIME_SLOTS = [
   "16:30-17:30",
 ]
 
-// TimetableGrid Component (Redesigned for Light Theme)
 function TimetableGrid({ timetable, courses, faculty, rooms }) {
   const getEntry = (day, slot) => {
     if (!timetable || !timetable.schedule) return null
@@ -81,59 +81,68 @@ function TimetableGrid({ timetable, courses, faculty, rooms }) {
   const typeColor = (t) => {
     switch (t) {
       case "lecture":
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return "bg-gradient-to-br from-cyan-500/20 to-blue-600/20 text-cyan-200 border border-cyan-500/30"
       case "lab":
-        return "bg-green-100 text-green-800 border-green-200"
+        return "bg-gradient-to-br from-emerald-500/20 to-green-600/20 text-emerald-200 border border-emerald-500/30"
       case "tutorial":
-        return "bg-purple-100 text-purple-800 border-purple-200"
+        return "bg-gradient-to-br from-purple-500/20 to-violet-600/20 text-purple-200 border border-purple-500/30"
       case "exam":
-        return "bg-red-100 text-red-800 border-red-200"
+        return "bg-gradient-to-br from-red-500/20 to-rose-600/20 text-red-200 border border-red-500/30"
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-gradient-to-br from-slate-600/20 to-gray-700/20 text-slate-200 border border-slate-500/30"
     }
   }
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-slate-200/50 shadow-lg">
-      <CardHeader className="p-4 border-b border-slate-200/50">
+    <Card className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 shadow-2xl shadow-cyan-500/10">
+      <CardHeader className="border-b border-slate-700/50 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold text-slate-800">{timetable.name}</CardTitle>
-            <div className="text-sm text-slate-600">
+            <CardTitle className="text-xl font-bold text-cyan-100">{timetable.name}</CardTitle>
+            <div className="text-sm text-slate-400">
               {timetable.department} • Semester {timetable.semester} • {timetable.year}
             </div>
           </div>
           <div className="flex gap-2 items-center">
             <Badge
-              variant={timetable.status === "published" ? "default" : "secondary"}
               className={
                 timetable.status === "published"
-                  ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                  : "bg-slate-100 text-slate-700 border-slate-200"
+                  ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0"
+                  : "bg-slate-700/50 text-slate-300 border border-slate-600/50"
               }
             >
               {timetable.status}
             </Badge>
             {timetable.conflicts && timetable.conflicts.length > 0 && (
-              <Badge variant="destructive">{timetable.conflicts.length} conflicts</Badge>
+              <Badge className="bg-gradient-to-r from-red-500 to-rose-600 text-white border-0">
+                {timetable.conflicts.length} conflicts
+              </Badge>
             )}
+            <Badge className="bg-slate-700/50 text-slate-300 border border-slate-600/50">
+              {timetable.metadata?.utilizationRate || 0}% utilized
+            </Badge>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-4">
+      <CardContent className="p-6">
         <div className="overflow-x-auto">
-          <div className="grid grid-cols-6 gap-2 min-w-[900px]">
-            <div className="font-semibold text-center p-2 bg-slate-100 rounded text-slate-700">Time</div>
+          <div className="grid grid-cols-6 gap-3 min-w-[900px]">
+            <div className="font-semibold text-center p-3 bg-slate-700/30 backdrop-blur-sm rounded-xl text-cyan-200 border border-slate-600/50">
+              Time
+            </div>
             {DAYS.map((d) => (
-              <div key={d} className="font-semibold text-center p-2 bg-slate-100 rounded text-slate-700">
+              <div
+                key={d}
+                className="font-semibold text-center p-3 bg-slate-700/30 backdrop-blur-sm rounded-xl text-cyan-200 border border-slate-600/50"
+              >
                 {d}
               </div>
             ))}
 
             {TIME_SLOTS.map((slot) => (
               <div key={slot} className="contents">
-                <div className="text-sm text-center p-2 bg-slate-50 rounded flex items-center justify-center text-slate-600">
+                <div className="text-sm text-center p-3 bg-slate-800/40 backdrop-blur-sm rounded-xl flex items-center justify-center text-slate-400 border border-slate-700/50">
                   <Clock className="h-3 w-3 mr-1" />
                   {slot}
                 </div>
@@ -143,7 +152,7 @@ function TimetableGrid({ timetable, courses, faculty, rooms }) {
                   if (!entry) {
                     return (
                       <div key={`${day}-${slot}`} className="min-h-[80px] p-1">
-                        <div className="h-full bg-slate-50 rounded-lg border-2 border-dashed border-slate-200" />
+                        <div className="h-full bg-slate-800/20 backdrop-blur-sm rounded-xl border-2 border-dashed border-slate-700/50 hover:border-cyan-500/50 transition-all duration-300" />
                       </div>
                     )
                   }
@@ -154,18 +163,27 @@ function TimetableGrid({ timetable, courses, faculty, rooms }) {
 
                   return (
                     <div key={`${day}-${slot}`} className="min-h-[80px] p-1">
-                      <div className={`p-2 rounded-lg border text-xs h-full ${typeColor(course?.type || "lecture")}`}>
-                        <div className="font-semibold leading-tight mb-1 line-clamp-2">
-                          {course ? `${course.name} (${course.code})` : "Unknown Course"}
+                      <div
+                        className={`p-3 rounded-xl text-xs h-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm ${typeColor(
+                          course?.type || "lecture",
+                        )}`}
+                      >
+                        <div className="font-semibold leading-tight mb-2 line-clamp-2 text-base">
+                          {course ? `${course.name} (${course.code})` : entry.courseId}
                         </div>
                         <div className="space-y-1 text-xs opacity-90">
                           <div className="flex items-center gap-1 truncate">
                             <User className="h-3 w-3" />
-                            <span className="truncate">{prof ? prof.name : "Unknown Faculty"}</span>
+                            <span className="truncate">{prof ? prof.name : entry.facultyId}</span>
                           </div>
                           <div className="flex items-center gap-1 truncate">
                             <MapPin className="h-3 w-3" />
-                            <span className="truncate">{room ? room.name : "Unknown Room"}</span>
+                            <span className="truncate">{room ? room.name : entry.roomId}</span>
+                          </div>
+                          <div className="mt-1">
+                            <Badge variant="outline" className="text-xs px-1 py-0  text-white backdrop-blur-sm">
+                              {course?.type || entry.type}
+                            </Badge>
                           </div>
                         </div>
                       </div>
@@ -179,14 +197,17 @@ function TimetableGrid({ timetable, courses, faculty, rooms }) {
 
         {timetable.conflicts && timetable.conflicts.length > 0 && (
           <div className="mt-6 space-y-3">
-            <h4 className="font-semibold text-red-600 flex items-center gap-2">
+            <h4 className="font-semibold text-red-400 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
               Conflicts Detected
             </h4>
             {timetable.conflicts.map((c, i) => (
-              <div key={i} className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div className="font-medium text-red-800">{(c.type || "CONFLICT").replace("_", " ")}</div>
-                <p className="text-sm text-slate-600">{c.message}</p>
+              <div key={i} className="p-4 bg-red-500/10 backdrop-blur-sm border border-red-400/30 rounded-xl">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium text-red-400">{(c.type || "CONFLICT").replace("_", " ")}</span>
+                  <Badge className="bg-gradient-to-r from-red-500 to-rose-600 text-white border-0 text-xs">High</Badge>
+                </div>
+                <p className="text-sm text-red-300">{c.message}</p>
               </div>
             ))}
           </div>
@@ -215,22 +236,24 @@ export default function TimetablePage() {
     constraintsText: "",
   })
 
-  // All your async functions (fetchTimetables, generateTimetable, etc.) remain the same
-
   useEffect(() => {
     fetchTimetables()
     fetchSupportingData()
   }, [])
 
+  // All async data fetching and handler functions remain the same...
   async function fetchTimetables() {
     setLoadingList(true)
     setError(null)
     try {
       const response = await api.get("/timetables")
-      setTimetables(Array.isArray(response.data) ? response.data : [])
+      const data = response.data
+      setTimetables(Array.isArray(data) ? data : [])
     } catch (err) {
+      console.error("Error fetching timetables:", err)
       const errorMessage = err.response?.data?.error || err.message || "Failed to load timetables"
-      setError(`Failed to load timetables: ${errorMessage}. Check backend.`)
+      setError(`Failed to load timetables: ${errorMessage}. Please check your backend connection.`)
+      setTimetables([])
     } finally {
       setLoadingList(false)
     }
@@ -247,11 +270,12 @@ export default function TimetablePage() {
       setFaculty(Array.isArray(facultyRes.data) ? facultyRes.data : [])
       setRooms(Array.isArray(roomsRes.data) ? roomsRes.data : [])
     } catch (err) {
+      console.error("Error fetching supporting data:", err)
       const errorMessage = err.response?.data?.error || err.message || "Unknown error"
-      setError(`Failed to load supporting data: ${errorMessage}`)
+      setError(`Failed to load courses, faculty, or rooms data: ${errorMessage}`)
     }
   }
-  
+
   async function viewTimetable(id) {
     setLoadingDetail(true)
     setSelected(null)
@@ -260,8 +284,13 @@ export default function TimetablePage() {
       const response = await api.get(`/timetables/${id}`)
       setSelected(response.data)
     } catch (err) {
-        const errorMessage = err.response?.data?.error || err.message || "Unknown error"
-        setError(err.response?.status === 404 ? "Timetable not found." : `Failed to load details: ${errorMessage}`)
+      console.error("Error fetching timetable:", err)
+      const errorMessage = err.response?.data?.error || err.message || "Unknown error"
+      if (err.response?.status === 404) {
+        setError("Timetable not found.")
+      } else {
+        setError(`Failed to load timetable details: ${errorMessage}`)
+      }
     } finally {
       setLoadingDetail(false)
     }
@@ -291,12 +320,15 @@ export default function TimetablePage() {
         constraints,
       }
       const response = await api.post("/timetables/generate", payload)
+      const newTimetable = response.data
       await fetchTimetables()
-      if (response.data?._id) {
-        await viewTimetable(response.data._id)
+      if (newTimetable._id) {
+        await viewTimetable(newTimetable._id)
       }
+      setError(null)
       alert("Timetable generated successfully!")
     } catch (err) {
+      console.error("Error generating timetable:", err)
       const errorMessage = err.response?.data?.error || err.message || "Unknown error"
       setError(`Failed to generate timetable: ${errorMessage}`)
     } finally {
@@ -310,10 +342,15 @@ export default function TimetablePage() {
     setError(null)
     try {
       const response = await api.post(`/timetables/${selected._id}/optimize`)
+      const result = response.data
       await viewTimetable(selected._id)
-      const suggestions = response.data?.suggestions || []
-      alert(suggestions.length > 0 ? `Optimization complete!\n\nSuggestions:\n• ${suggestions.join("\n• ")}` : "Optimization completed successfully!")
+      if (result.suggestions && result.suggestions.length > 0) {
+        alert("Optimization complete!\n\nSuggestions:\n• " + result.suggestions.join("\n• "))
+      } else {
+        alert("Optimization completed successfully!")
+      }
     } catch (err) {
+      console.error("Error optimizing timetable:", err)
       const errorMessage = err.response?.data?.error || err.message || "Unknown error"
       setError(`Optimization failed: ${errorMessage}`)
     } finally {
@@ -324,31 +361,38 @@ export default function TimetablePage() {
   async function togglePublish(timetable) {
     setError(null)
     try {
-        const newStatus = timetable.status === "published" ? "draft" : "published"
-        await api.put(`/timetables/${timetable._id}`, { ...timetable, status: newStatus })
-        await fetchTimetables()
-        if (selected?._id === timetable._id) {
-            await viewTimetable(timetable._id)
-        }
+      const newStatus = timetable.status === "published" ? "draft" : "published"
+      const updatedData = { ...timetable, status: newStatus }
+      await api.put(`/timetables/${timetable._id}`, updatedData)
+      await fetchTimetables()
+      if (selected && selected._id === timetable._id) {
+        await viewTimetable(timetable._id)
+      }
     } catch (err) {
-        const errorMessage = err.response?.data?.error || err.message || "Unknown error"
-        setError(`Failed to change status: ${errorMessage}`)
+      console.error("Error updating timetable:", err)
+      const errorMessage = err.response?.data?.error || err.message || "Unknown error"
+      setError(`Failed to change timetable status: ${errorMessage}`)
     }
   }
 
   async function deleteTimetable(timetable) {
-    if (!confirm(`Delete timetable "${timetable.name}"? This is irreversible.`)) return
+    if (!confirm(`Delete timetable "${timetable.name}"? This cannot be undone.`)) return
     setError(null)
     try {
       await api.delete(`/timetables/${timetable._id}`)
       await fetchTimetables()
-      if (selected?._id === timetable._id) {
+      if (selected && selected._id === timetable._id) {
         setSelected(null)
       }
       alert("Timetable deleted successfully")
     } catch (err) {
+      console.error("Error deleting timetable:", err)
       const errorMessage = err.response?.data?.error || err.message || "Unknown error"
-      setError(err.response?.status === 404 ? "Timetable not found." : `Failed to delete: ${errorMessage}`)
+      if (err.response?.status === 404) {
+        setError("Timetable not found.")
+      } else {
+        setError(`Failed to delete timetable: ${errorMessage}`)
+      }
     }
   }
 
@@ -374,19 +418,24 @@ export default function TimetablePage() {
   ]
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
-      <div className="w-64 bg-white/90 backdrop-blur-sm border-r border-slate-200/50 shadow-lg p-6 flex flex-col justify-between">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
+      <aside className="relative z-10 w-64 bg-slate-800/40 backdrop-blur-xl border-r border-slate-700/50 shadow-2xl p-6 flex flex-col justify-between">
         <div className="space-y-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/25">
               <CalendarIconLucide className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800">Scheduler</h2>
-              <p className="text-xs text-slate-500">Smart Classroom</p>
+              <h2 className="text-lg font-bold text-cyan-100">Scheduler</h2>
+              <p className="text-xs text-slate-400">Smart Classroom</p>
             </div>
           </div>
-
           <nav className="space-y-2">
             {navigationItems.map((item) => {
               const IconComponent = item.icon
@@ -396,16 +445,16 @@ export default function TimetablePage() {
                   <div
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group cursor-pointer ${
                       isActive
-                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-600/25"
-                        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                        ? "bg-gradient-to-r from-cyan-600/30 to-blue-600/30 text-cyan-100 shadow-lg shadow-cyan-600/20 border border-cyan-500/30 backdrop-blur-sm"
+                        : "text-slate-300 hover:bg-slate-700/30 hover:text-cyan-200 backdrop-blur-sm border border-transparent hover:border-slate-600/30"
                     }`}
                   >
                     <IconComponent
-                      className={`w-5 h-5 transition-transform duration-300 ${
-                        isActive ? "text-white" : "text-slate-500 group-hover:text-slate-700"
+                      className={`w-5 h-5 transition-all duration-300 ${
+                        isActive ? "text-cyan-300" : "text-slate-400 group-hover:text-cyan-400"
                       } group-hover:scale-110`}
                     />
-                    <span className={`font-medium transition-colors duration-300 ${isActive ? "text-white" : ""}`}>
+                    <span className={`font-medium transition-colors duration-300 ${isActive ? "text-cyan-100" : ""}`}>
                       {item.label}
                     </span>
                   </div>
@@ -414,124 +463,231 @@ export default function TimetablePage() {
             })}
           </nav>
         </div>
-      </div>
+      </aside>
 
-      <main className="flex-1 overflow-auto p-8 space-y-8">
-        <div className="flex items-center justify-between">
-          <div className="space-y-3">
-            <h1 className="text-4xl lg:text-5xl font-bold text-slate-800 leading-tight">Timetables</h1>
-            <p className="text-lg text-slate-600 max-w-2xl leading-relaxed">
-              Generate, optimize and manage academic timetables with AI assistance.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={exportTimetable}
-              disabled={!selected}
-              variant="outline"
-              className="border-slate-300 bg-white hover:bg-slate-50 text-slate-700"
-            >
-              <Download className="h-4 w-4 mr-2" /> Export
-            </Button>
-            <Button
-              onClick={optimizeSelected}
-              disabled={!selected || optimizing}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg hover:shadow-xl"
-            >
-              <Sparkles className="h-4 w-4 mr-2" /> {optimizing ? "Optimizing..." : "AI Optimize"}
-            </Button>
-          </div>
-        </div>
+      <main className="flex-1 p-6 relative z-10 overflow-auto">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex-1 space-y-4">
+              <div className="text-center mb-8">
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent mb-4">
+                  Timetable Generator
+                </h1>
+                <p className="text-cyan-200 text-lg">
+                  Generate, optimize and manage academic timetables with AI assistance
+                </p>
+              </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
+              {error && (
+                <div className="bg-red-500/10 backdrop-blur-sm border border-red-400/30 text-red-300 px-4 py-3 rounded-xl flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-          <div className="space-y-8">
-            <Card className="bg-white/80 backdrop-blur-sm border-slate-200/50 shadow-lg">
-              <CardHeader className="border-b border-slate-200/50 p-6">
-                <CardTitle className="flex items-center gap-2 text-xl text-slate-800">
-                  <Sparkles className="h-5 w-5 text-blue-600" />
-                  Generate New Timetable
-                </CardTitle>
-                <CardDescription>Provide details to generate a new schedule.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                <form onSubmit={generateTimetable} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label className="font-medium text-slate-700">Department</Label>
-                      <Input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} required className="mt-1"/>
-                    </div>
-                    <div>
-                      <Label className="font-medium text-slate-700">Semester</Label>
-                      <Select value={form.semester} onValueChange={(value) => setForm({ ...form, semester: value })}>
-                          <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                              {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (<SelectItem key={sem} value={sem.toString()}>{sem}</SelectItem>))}
-                          </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="font-medium text-slate-700">Year</Label>
-                      <Input type="number" value={form.academicYear} onChange={(e) => setForm({ ...form, academicYear: e.target.value })} min="2020" max="2030" className="mt-1"/>
-                    </div>
+              <Card className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 shadow-2xl shadow-cyan-500/10">
+                <CardHeader className="">
+                  <div className="flex items-center text-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <Sparkles className="h-5 w-5  text-cyan-300" />
+                      Generate New Timetable
+                    </CardTitle>
+                    <Badge className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-0 shadow-lg">
+                      AI Powered
+                    </Badge>
                   </div>
-                  <div>
-                    <Label className="font-medium text-slate-700">Constraints (Optional)</Label>
-                    <Textarea value={form.constraintsText} onChange={(e) => setForm({ ...form, constraintsText: e.target.value })} placeholder='e.g., {"avoidFriday": true}' rows={2} className="mt-1"/>
-                  </div>
-                  <Button type="submit" className="bg-gradient-to-r from-blue-600 to-blue-700 text-white" disabled={generating}>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    {generating ? "Generating..." : "Generate"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/80 backdrop-blur-sm border-slate-200/50 shadow-lg">
-              <CardHeader className="border-b border-slate-200/50 p-6">
-                <CardTitle className="text-xl text-slate-800">Existing Timetables</CardTitle>
-                <CardDescription>{timetables.length} schedules found</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                {loadingList ? <p>Loading...</p> : (
-                  <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                    {timetables.map((t) => (
-                      <div key={t._id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-200">
-                        <div>
-                          <p className="font-semibold text-slate-800">{t.name}</p>
-                          <p className="text-sm text-slate-500">{t.department} • Sem {t.semester}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline" onClick={() => viewTimetable(t._id)}>View</Button>
-                          <Button size="sm" variant="destructive" onClick={() => deleteTimetable(t)}><Trash2 className="h-4 w-4" /></Button>
-                        </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <form onSubmit={generateTimetable} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-cyan-200 mb-2">Department</label>
+                        <Input
+                          value={form.department}
+                          onChange={(e) => setForm({ ...form, department: e.target.value })}
+                          placeholder="e.g., Computer Science"
+                          required
+                          className="bg-slate-800/50 border-slate-600/50 focus:border-cyan-500 focus:ring-cyan-500/20 text-slate-200 placeholder-slate-500 backdrop-blur-sm transition-all duration-300 hover:border-slate-500/70"
+                        />
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-          <div className="space-y-4">
-            {loadingDetail ? <p>Loading Details...</p> : !selected ? (
-              <Card className="bg-white/80 backdrop-blur-sm border-slate-200/50 shadow-lg">
-                <CardContent className="text-center py-20">
-                  <div className="text-slate-500">
-                    <CalendarIconLucide className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium mb-2">No Timetable Selected</p>
-                    <p className="text-sm">Select a schedule from the list to see the full grid.</p>
-                  </div>
+                      <div>
+                        <label className="block text-sm font-medium text-cyan-200 mb-2">Semester</label>
+                        <Select value={form.semester} onValueChange={(value) => setForm({ ...form, semester: value })}>
+                          <SelectTrigger className="bg-slate-800/50 border-slate-600/50 focus:border-cyan-500 text-slate-200 backdrop-blur-sm transition-all duration-300 hover:border-slate-500/70">
+                            <SelectValue placeholder="Select semester" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800/90 backdrop-blur-xl border-slate-600/50 text-slate-200">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                              <SelectItem key={sem} value={sem.toString()} className="hover:bg-slate-700/50 focus:bg-slate-700/50">
+                                {sem}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-cyan-200 mb-2">Academic Year</label>
+                        <Input
+                          type="number"
+                          value={form.academicYear}
+                          onChange={(e) => setForm({ ...form, academicYear: e.target.value })}
+                          min="2020"
+                          max="2030"
+                          className="bg-slate-800/50 border-slate-600/50 focus:border-cyan-500 focus:ring-cyan-500/20 text-slate-200 placeholder-slate-500 backdrop-blur-sm transition-all duration-300 hover:border-slate-500/70"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-cyan-200 mb-2">
+                        Constraints (Optional JSON or Notes)
+                      </label>
+                      <Textarea
+                        value={form.constraintsText}
+                        onChange={(e) => setForm({ ...form, constraintsText: e.target.value })}
+                        placeholder='e.g., {"avoidFriday": true} or "No classes after 4 PM"'
+                        rows={3}
+                        className="bg-slate-800/50 border-slate-600/50 focus:border-cyan-500 focus:ring-cyan-500/20 text-slate-200 placeholder-slate-500 backdrop-blur-sm transition-all duration-300 hover:border-slate-500/70"
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        type="submit"
+                        className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-600/25 hover:shadow-xl hover:shadow-cyan-600/30 transition-all duration-300 hover:scale-105 border border-cyan-500/30 backdrop-blur-sm"
+                        disabled={generating}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        {generating ? "Generating..." : "Generate Timetable"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          setForm({
+                            department: "Computer Science",
+                            semester: "5",
+                            academicYear: new Date().getFullYear(),
+                            constraintsText: "",
+                          })
+                        }
+                        className="bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border border-slate-600/50 hover:border-slate-500/70 backdrop-blur-sm transition-all duration-300"
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                  </form>
                 </CardContent>
               </Card>
-            ) : (
-              <TimetableGrid timetable={selected} courses={courses} faculty={faculty} rooms={rooms} />
-            )}
+
+              <Card className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 shadow-2xl shadow-cyan-500/10">
+                <CardHeader className="border-b border-slate-700/50 p-6">
+                  <CardTitle className="text-cyan-100">Existing Timetables ({timetables.length})</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {loadingList ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin h-8 w-8 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                      <p className="text-cyan-200">Loading timetables...</p>
+                    </div>
+                  ) : timetables.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400">
+                      <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                      <p>No timetables found. Generate your first timetable above!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {timetables.map((t) => (
+                        <div
+                          key={t._id}
+                          className="flex items-center justify-between gap-3 p-4 rounded-xl bg-slate-800/30 backdrop-blur-sm hover:bg-slate-700/40 transition-all duration-300 border border-slate-700/50 hover:border-cyan-500/30"
+                        >
+                          <div className="flex-1">
+                            <div className="font-semibold text-white">{t.name}</div>
+                            <div className="text-sm text-slate-400">
+                              {t.department} • Semester {t.semester} • {t.year}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge
+                                className={
+                                  t.status === "published"
+                                    ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0"
+                                    : "bg-slate-700/50 text-slate-300 border border-slate-600/50"
+                                }
+                              >
+                                {t.status}
+                              </Badge>
+                              <Badge className="bg-slate-700/50 text-slate-300 border border-slate-600/50 text-xs">
+                                {t.metadata?.totalHours || 0} hours
+                              </Badge>
+                              {t.conflicts && t.conflicts.length > 0 && (
+                                <Badge className="bg-gradient-to-r from-red-500 to-rose-600 text-white border-0 text-xs">
+                                  {t.conflicts.length} conflicts
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => viewTimetable(t._id)}
+                              className="text-cyan-300 hover:text-white hover:bg-cyan-500/20"
+                            >
+                              View
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => togglePublish(t)}
+                              className="bg-slate-700/50 text-slate-300 border border-slate-600/50 hover:bg-slate-600/50"
+                            >
+                              {t.status === "published" ? "Unpublish" : "Publish"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => deleteTimetable(t)}
+                              className="bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 border-0"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="w-[720px] max-w-full space-y-4">
+              {loadingDetail ? (
+                <Card className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50">
+                  <CardContent className="text-center py-12">
+                    <div className="animate-spin h-8 w-8 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p className="text-cyan-200">Loading timetable details...</p>
+                  </CardContent>
+                </Card>
+              ) : !selected ? (
+                <Card className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50">
+                  <CardHeader>
+                    <CardTitle className="text-cyan-100">Timetable Preview</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center py-12">
+                    <div className="text-slate-500">
+                      <CalendarIconLucide className="h-16 w-16 mx-auto mb-4 opacity-30" />
+                      <p className="text-lg font-medium mb-2 text-slate-300">No Timetable Selected</p>
+                      <p className="text-sm">
+                        Select a timetable from the list to view details, grid, and management options.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  <TimetableGrid timetable={selected} courses={courses} faculty={faculty} rooms={rooms} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>
