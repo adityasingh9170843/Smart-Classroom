@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -39,8 +37,18 @@ export default function FacultyPage() {
     { id: "courses", label: "Courses", icon: BookOpen, path: "/courses" },
     { id: "faculty", label: "Faculty", icon: Users, path: "/faculty" },
     { id: "rooms", label: "Rooms", icon: Home, path: "/rooms" },
-    { id: "timetables", label: "Timetables", icon: Calendar, path: "/timetables" },
-    { id: "notifications", label: "Notifications", icon: Bell, path: "/notifications" },
+    {
+      id: "timetables",
+      label: "Timetables",
+      icon: Calendar,
+      path: "/timetables",
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: Bell,
+      path: "/notifications",
+    },
   ];
 
   const fetchFaculty = async () => {
@@ -64,7 +72,10 @@ export default function FacultyPage() {
     setFormLoading(true);
     try {
       if (editingFaculty) {
-        await axios.put(`http://localhost:5000/api/faculty/${editingFaculty._id}`, data);
+        await axios.put(
+          `http://localhost:5000/api/faculty/${editingFaculty._id}`,
+          data
+        );
       } else {
         await axios.post("http://localhost:5000/api/faculty", data);
       }
@@ -80,7 +91,9 @@ export default function FacultyPage() {
 
   const handleDelete = async (facultyMember) => {
     try {
-      await axios.delete(`http://localhost:5000/api/faculty/${facultyMember._id}`);
+      await axios.delete(
+        `http://localhost:5000/api/faculty/${facultyMember._id}`
+      );
       if (editingFaculty && editingFaculty._id === facultyMember._id) {
         setEditingFaculty(null);
         setShowForm(false);
@@ -104,17 +117,36 @@ export default function FacultyPage() {
         </div>
       ),
     },
-    { key: "department", label: "Department", render: (f) => <div className="text-slate-700">{f.department}</div> },
-    { key: "designation", label: "Designation", render: (f) => <div className="text-slate-700">{f.designation || "N/A"}</div> },
+    {
+      key: "department",
+      label: "Department",
+      render: (f) => <div className="text-slate-700">{f.department}</div>,
+    },
+    {
+      key: "designation",
+      label: "Designation",
+      render: (f) => (
+        <div className="text-slate-700">{f.designation || "N/A"}</div>
+      ),
+    },
     {
       key: "specialization",
       label: "Specialization",
       render: (f) => (
         <div className="flex flex-wrap gap-1">
           {f.specialization?.slice(0, 2).map((s) => (
-            <Badge key={s} className="bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200">{s}</Badge>
+            <Badge
+              key={s}
+              className="bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200"
+            >
+              {s}
+            </Badge>
           ))}
-          {f.specialization?.length > 2 && <Badge className="bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200">+{f.specialization.length - 2}</Badge>}
+          {f.specialization?.length > 2 && (
+            <Badge className="bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200">
+              +{f.specialization.length - 2}
+            </Badge>
+          )}
         </div>
       ),
     },
@@ -128,16 +160,63 @@ export default function FacultyPage() {
       ),
     },
     {
+      key: "availability",
+      label: "Availability",
+      render: (f) => (
+        <div className="flex flex-col gap-1">
+          {Object.entries(f.availability || {}).map(([day, slots]) =>
+            slots.length ? (
+              <div key={day}>
+                <strong>{day.charAt(0).toUpperCase() + day.slice(1)}:</strong>{" "}
+                {slots.map((s) => `${s.start}-${s.end}`).join(", ")}
+              </div>
+            ) : null
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "preferences",
+      label: "Preferences",
+      render: (f) => (
+        <div className="flex flex-col gap-1">
+          {f.preferences?.preferredTimeSlots?.length > 0 && (
+            <div>
+              <strong>Preferred:</strong>{" "}
+              {f.preferences.preferredTimeSlots.join(", ")}
+            </div>
+          )}
+          {f.preferences?.avoidTimeSlots?.length > 0 && (
+            <div>
+              <strong>Avoid:</strong> {f.preferences.avoidTimeSlots.join(", ")}
+            </div>
+          )}
+        </div>
+      ),
+    },
+
+    {
       key: "actions",
       label: "Actions",
       render: (f) => (
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="border-slate-300 bg-white hover:bg-blue-50 text-slate-700 hover:border-blue-300 hover:text-blue-700 transition-all duration-300"
-            onClick={() => { setEditingFaculty(f); setShowForm(true); }}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-slate-300 bg-white hover:bg-blue-50 text-slate-700 hover:border-blue-300 hover:text-blue-700 transition-all duration-300"
+            onClick={() => {
+              setEditingFaculty(f);
+              setShowForm(true);
+            }}
+          >
             Edit
           </Button>
-          <Button size="sm" variant="outline" className="border-red-300 bg-white hover:bg-red-50 text-red-600 hover:border-red-400 hover:text-red-700 transition-all duration-300"
-            onClick={() => handleDelete(f)}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-red-300 bg-white hover:bg-red-50 text-red-600 hover:border-red-400 hover:text-red-700 transition-all duration-300"
+            onClick={() => handleDelete(f)}
+          >
             Delete
           </Button>
         </div>
@@ -145,7 +224,10 @@ export default function FacultyPage() {
     },
   ];
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading faculty...</div>;
+  if (loading)
+    return (
+      <div className="p-8 text-center text-slate-500">Loading faculty...</div>
+    );
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
@@ -167,10 +249,32 @@ export default function FacultyPage() {
               const IconComponent = item.icon;
               const isActive = activeNavItem === item.id;
               return (
-                <Link key={item.id} to={item.path} onClick={() => setActiveNavItem(item.id)}>
-                  <div className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group cursor-pointer ${isActive ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-600/25" : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"}`}>
-                    <IconComponent className={`w-5 h-5 transition-transform duration-300 ${isActive ? "text-white" : "text-slate-500 group-hover:text-slate-700"} group-hover:scale-110`} />
-                    <span className={`font-medium transition-colors duration-300 ${isActive ? "text-white" : ""}`}>{item.label}</span>
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => setActiveNavItem(item.id)}
+                >
+                  <div
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group cursor-pointer ${
+                      isActive
+                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-600/25"
+                        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
+                  >
+                    <IconComponent
+                      className={`w-5 h-5 transition-transform duration-300 ${
+                        isActive
+                          ? "text-white"
+                          : "text-slate-500 group-hover:text-slate-700"
+                      } group-hover:scale-110`}
+                    />
+                    <span
+                      className={`font-medium transition-colors duration-300 ${
+                        isActive ? "text-white" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </span>
                   </div>
                 </Link>
               );
@@ -183,7 +287,9 @@ export default function FacultyPage() {
             <Users className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-800 truncate">Admin User</p>
+            <p className="text-sm font-medium text-slate-800 truncate">
+              Admin User
+            </p>
             <p className="text-xs text-slate-500">System Administrator</p>
           </div>
         </div>
@@ -193,11 +299,19 @@ export default function FacultyPage() {
       <div className="flex-1 overflow-auto p-8 space-y-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-3">
-            <h1 className="text-4xl lg:text-5xl font-bold text-slate-800 leading-tight">Faculty</h1>
-            <p className="text-lg text-slate-600 max-w-2xl leading-relaxed">Manage faculty members and their information. Add, edit, and organize teaching staff.</p>
+            <h1 className="text-4xl lg:text-5xl font-bold text-slate-800 leading-tight">
+              Faculty
+            </h1>
+            <p className="text-lg text-slate-600 max-w-2xl leading-relaxed">
+              Manage faculty members and their information. Add, edit, and
+              organize teaching staff.
+            </p>
           </div>
           <Button
-            onClick={() => { setEditingFaculty(null); setShowForm(!showForm); }}
+            onClick={() => {
+              setEditingFaculty(null);
+              setShowForm(!showForm);
+            }}
             className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 flex items-center gap-2"
           >
             <Plus className="h-5 w-5" /> Add Faculty
@@ -208,8 +322,12 @@ export default function FacultyPage() {
         {showForm && (
           <Card className="bg-white/80 backdrop-blur-sm border-slate-200/50 shadow-lg">
             <CardHeader className="border-b border-slate-200/50 p-6">
-              <CardTitle className="text-xl font-semibold text-slate-800">{editingFaculty ? "Edit Faculty" : "Add New Faculty"}</CardTitle>
-              <CardDescription className="text-slate-600">Fill in the faculty details below</CardDescription>
+              <CardTitle className="text-xl font-semibold text-slate-800">
+                {editingFaculty ? "Edit Faculty" : "Add New Faculty"}
+              </CardTitle>
+              <CardDescription className="text-slate-600">
+                Fill in the faculty details below
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <FacultyForm
@@ -227,16 +345,25 @@ export default function FacultyPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
-                  <div className="p-2 bg-blue-100 rounded-xl"><Users className="h-5 w-5 text-blue-600" /></div>
+                  <div className="p-2 bg-blue-100 rounded-xl">
+                    <Users className="h-5 w-5 text-blue-600" />
+                  </div>
                   All Faculty
                 </CardTitle>
-                <CardDescription className="text-slate-600">{faculty.length} faculty members registered</CardDescription>
+                <CardDescription className="text-slate-600">
+                  {faculty.length} faculty members registered
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-6">
             <div className="bg-white/60 rounded-xl border border-slate-200/50 overflow-hidden">
-              <DataTable data={faculty} columns={columns} searchKey="name" loading={loading} />
+              <DataTable
+                data={faculty}
+                columns={columns}
+                searchKey="name"
+                loading={loading}
+              />
             </div>
           </CardContent>
         </Card>

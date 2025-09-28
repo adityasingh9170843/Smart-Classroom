@@ -13,7 +13,7 @@ const ScheduleEntrySchema = new mongoose.Schema(
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
   },
-  { _id: false } 
+  { _id: false }
 );
 
 const TimetableSchema = new mongoose.Schema(
@@ -37,11 +37,8 @@ const TimetableSchema = new mongoose.Schema(
       conflictCount: { type: Number, default: 0 },
     },
   },
-  {
-    timestamps: true, 
-  }
+  { timestamps: true }
 );
 
 const Timetable = mongoose.model("Timetable", TimetableSchema);
-
 export default Timetable;

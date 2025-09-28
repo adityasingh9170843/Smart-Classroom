@@ -242,7 +242,7 @@ export default function TimetablePage() {
         api.get('/faculty'),
         api.get('/rooms')
       ]);
-
+      console.log(coursesRes.data, facultyRes.data, roomsRes.data);
       setCourses(Array.isArray(coursesRes.data) ? coursesRes.data : []);
       setFaculty(Array.isArray(facultyRes.data) ? facultyRes.data : []);
       setRooms(Array.isArray(roomsRes.data) ? roomsRes.data : []);
@@ -261,6 +261,7 @@ export default function TimetablePage() {
     try {
       const response = await api.get(`/timetables/${id}`);
       setSelected(response.data);
+      console.log(response.data);
     } catch (err) {
       console.error("Error fetching timetable:", err);
       const errorMessage = err.response?.data?.error || err.message || "Unknown error";
@@ -304,6 +305,7 @@ export default function TimetablePage() {
 
       const response = await api.post('/timetables/generate', payload);
       const newTimetable = response.data;
+      console.log(newTimetable);
       
       // Refresh the timetables list
       await fetchTimetables();
