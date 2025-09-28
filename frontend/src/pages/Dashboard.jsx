@@ -153,15 +153,7 @@ export default function Dashboard() {
       iconBg: "bg-green-100",
       iconColor: "text-green-600"
     },
-    {
-      title: "Utilization Rate",
-      value: `${stats.utilizationRate}%`,
-      icon: Target,
-      color: "from-cyan-500 to-cyan-600",
-      bgColor: "from-cyan-50 to-cyan-100/50",
-      iconBg: "bg-cyan-100",
-      iconColor: "text-cyan-600"
-    },
+    
     {
       title: "Pending Tasks",
       value: stats.pendingTasks,
@@ -367,7 +359,7 @@ export default function Dashboard() {
                               {t.department} • Semester {t.semester} • {t.schedule?.length || 0} classes scheduled
                             </p>
                           </div>
-                          <Link to={`/timetables/${t._id}`}>
+                          <Link to={`/timetables/`}>
                             <Button
                               variant="outline"
                               size="sm"

@@ -96,7 +96,7 @@ export async function generateTimetableWithAI(request) {
     const relevantFaculty = allFaculty.filter(f => (f.department || '').toLowerCase() === department.toLowerCase());
 
     // 2. Engineer the detailed prompt for Gemini
-    const prompt = `
+     const prompt = `
       You are an expert university timetable scheduler. Your task is to generate a complete, conflict-free weekly timetable.
 
       **Input Data:**
@@ -109,18 +109,19 @@ export async function generateTimetableWithAI(request) {
       - Courses to Schedule (with required weekly hours):
         ${relevantCourses.map(c => `- Course Name: "${c.name}", ID: "${c._id}", Weekly Sessions: ${getWeeklySessions(c)}`).join('\n        ')}
 
-      - Available Faculty (with their IDs):
-        ${relevantFaculty.map(f => `- Faculty Name: "${f.name}", ID: "${f._id}"`).join('\n        ')}
+      - Available Faculty (with their IDs and Specializations):
+        ${relevantFaculty.map(f => `- Faculty Name: "${f.name}", ID: "${f._id}", Specializations: ${JSON.stringify(f.specialization || [])}`).join('\n        ')}
 
       - Available Rooms (with their IDs):
         ${allRooms.map(r => `- Room Name: "${r.name}", ID: "${r._id}"`).join('\n        ')}
 
       **Strict Rules You Must Follow:**
-      1.  **Assign One Faculty Per Course:** Each course must be assigned to exactly ONE faculty member for all its weekly sessions.
-      2.  **Schedule All Sessions:** Ensure every course is scheduled for its required number of weekly sessions.
-      3.  **No Conflicts:** A faculty member or a room cannot be in two places at once. Each time slot for a specific resource can only be used once.
-      4.  **Use Provided IDs:** You MUST use the exact 'courseId', 'facultyId', and 'roomId' strings provided in the data above.
-      5.  **Strictly Adhere to Format:** Return ONLY a valid JSON array of schedule entry objects. Do not include any other text, markdown, or explanations.
+      1.  **Match Specializations:** You MUST assign a faculty member to a course ONLY if the course name or subject matter aligns with one of their listed specializations. This is a critical requirement.
+      2.  **Assign One Faculty Per Course:** Each course must be assigned to exactly ONE faculty member for all its weekly sessions.
+      3.  **Schedule All Sessions:** Ensure every course is scheduled for its required number of weekly sessions.
+      4.  **No Conflicts:** A faculty member or a room cannot be in two places at once. Each time slot for a specific resource can only be used once.
+      5.  **Use Provided IDs:** You MUST use the exact 'courseId', 'facultyId', and 'roomId' strings provided in the data above.
+      6.  **Strictly Adhere to Format:** Return ONLY a valid JSON array of schedule entry objects. Do not include any other text, markdown, or explanations.
 
       **Output JSON Object Structure:**
       {

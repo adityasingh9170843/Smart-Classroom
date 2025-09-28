@@ -81,10 +81,11 @@ export default function NotificationsPage() {
     }
   };
   
-  const handleDeleteNotification = async (id) => {
+  const confirmDeleteNotification = async () => {
+    if (!notificationToDelete) return;
     try {
-      await axios.delete(`http://localhost:5000/api/notifications/${id}`);
-      setNotifications(prev => prev.filter(n => n._id !== id));
+      await axios.delete(`http://localhost:5000/api/notifications/${notificationToDelete._id}`);
+      setNotifications(prev => prev.filter(n => n._id !== notificationToDelete._id));
     } catch (error) {
         console.error("Error deleting notification:", error);
     } finally {
@@ -349,7 +350,7 @@ export default function NotificationsPage() {
                     </Button>
                     <Button
                         variant="destructive"
-                        onClick={() => handleDeleteNotification(notificationToDelete._id)}
+                        onClick={confirmDeleteNotification}
                     >
                         Delete Notification
                     </Button>

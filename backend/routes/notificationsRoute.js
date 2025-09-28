@@ -45,3 +45,17 @@ notificationsRouter.put("/:id/read", async (req, res) => {
     res.status(500).json({ error: "Failed to mark notification as read" });
   }
 });
+
+
+notificationsRouter.delete("/:id", async (req, res) => {
+  try {
+    const notification = await Notification.findByIdAndDelete(req.params.id);
+    if (!notification) {
+      return res.status(404).json({ error: "Notification not found" });
+    }
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    res.status(500).json({ error: "Failed to delete notification" });
+  }
+});
