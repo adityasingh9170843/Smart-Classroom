@@ -4,7 +4,9 @@ import Faculty from '../models/Faculty.js';
 import Room from '../models/Room.js';
 import Timetable from '../models/Timetable.js';
 import Notification from '../models/Notification.js';
+import dotenv from 'dotenv';
 
+dotenv.config({ quiet: true });
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_API_KEY,
 });

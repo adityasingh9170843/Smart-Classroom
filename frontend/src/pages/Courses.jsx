@@ -115,77 +115,102 @@ export default function CoursesPage() {
 
   // DataTable columns (note: key for semester is "semester")
   const columns = [
-    {
-      key: "code",
-      label: "Course Code",
-      sortable: true,
-      render: (course) => (
-        <div className="font-mono font-semibold text-slate-800">
-          {course.code}
-        </div>
-      ),
-    },
-    {
-      key: "name",
-      label: "Course Name",
-      sortable: true,
-      render: (course) => (
-        <div className="font-medium text-slate-800">{course.name}</div>
-      ),
-    },
-    {
-      key: "department",
-      label: "Department",
-      sortable: true,
-      render: (course) => <div className="text-slate-700">{course.department}</div>,
-    },
-    {
-      key: "credits",
-      label: "Credits",
-      render: (course) => (
-        <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
-          {course.credits}
-        </Badge>
-      ),
-    },
-    {
-      key: "semester", // <-- must match actual field name
-      label: "Semester",
-      render: (course) => (
-        <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
-          {course.semester}
-        </Badge>
-      ),
-    },
-
-    {
-      key: "actions",
-      label: "Actions",
-      render: (course) => (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-slate-300 bg-white hover:bg-blue-50 text-slate-700 hover:border-blue-300 hover:text-blue-700 transition-all duration-300"
-            onClick={() => {
-              setEditingCourse(course);    // open edit mode
-              setShowForm(true);
-            }}
-          >
-            Edit
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-red-300 bg-white hover:bg-red-50 text-red-600 hover:border-red-400 hover:text-red-700 transition-all duration-300"
-            onClick={() => handleDeleteCourse(course._id)}
-          >
-            Delete
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  {
+    key: "code",
+    label: "Course Code",
+    sortable: true,
+    render: (course) => (
+      <div className="font-mono font-semibold text-slate-800">
+        {course.code}
+      </div>
+    ),
+  },
+  {
+    key: "name",
+    label: "Course Name",
+    sortable: true,
+    render: (course) => (
+      <div className="font-medium text-slate-800">{course.name}</div>
+    ),
+  },
+  {
+    key: "department",
+    label: "Department",
+    sortable: true,
+    render: (course) => <div className="text-slate-700">{course.department}</div>,
+  },
+  {
+    key: "credits",
+    label: "Credits",
+    render: (course) => (
+      <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+        {course.credits}
+      </Badge>
+    ),
+  },
+  {
+    key: "semester",
+    label: "Semester",
+    render: (course) => (
+      <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
+        Sem {course.semester}
+      </Badge>
+    ),
+  },
+  {
+    key: "year", // New column
+    label: "Year",
+    render: (course) => (
+      <Badge className="bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200">
+        {course.year}
+      </Badge>
+    ),
+  },
+  {
+    key: "prerequisites", // New column
+    label: "Prerequisites",
+    render: (course) => (
+      <div className="flex flex-wrap gap-1 max-w-32">
+        {course.prerequisites?.length > 0 ? (
+          course.prerequisites.map((prereq, index) => (
+            <Badge key={index} variant="outline" className="text-xs">
+              {prereq}
+            </Badge>
+          ))
+        ) : (
+          <span className="text-slate-400 text-sm">None</span>
+        )}
+      </div>
+    ),
+  },
+  {
+    key: "actions",
+    label: "Actions",
+    render: (course) => (
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-slate-300 bg-white hover:bg-blue-50 text-slate-700 hover:border-blue-300 hover:text-blue-700 transition-all duration-300"
+          onClick={() => {
+            setEditingCourse(course);
+            setShowForm(true);
+          }}
+        >
+          Edit
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-red-300 bg-white hover:bg-red-50 text-red-600 hover:border-red-400 hover:text-red-700 transition-all duration-300"
+          onClick={() => handleDeleteCourse(course._id)}
+        >
+          Delete
+        </Button>
+      </div>
+    ),
+  },
+];
 
   if (loading) {
     return (
