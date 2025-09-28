@@ -3,8 +3,9 @@ import axios from "axios"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, TrendingUp, AlertTriangle, Plus, Sparkles, Users, BookOpen, Home, CheckCircle, Clock, Target, Bell, LayoutDashboard } from "lucide-react"
+import { Calendar, TrendingUp, AlertTriangle, Plus, Sparkles, Users, BookOpen, Home, CheckCircle, Clock, Target, Bell, LayoutDashboard, MessageSquare } from "lucide-react"
 import { Link } from "react-router-dom"
+import { Chatbot } from "@/components/Chatbot"; // Import the new Chatbot component
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true)
@@ -14,6 +15,10 @@ export default function Dashboard() {
   const [timetables, setTimetables] = useState([])
   const [notifications, setNotifications] = useState([])
   const [activeNavItem, setActiveNavItem] = useState('dashboard')
+
+  // --- State for Chatbot ---
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  // -------------------------
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -51,6 +56,7 @@ export default function Dashboard() {
     fetchData()
   }, [])
 
+  // --- Loading State (No Changes) ---
   if (loading) {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
@@ -94,6 +100,26 @@ export default function Dashboard() {
       : 0,
     pendingTasks: notifications.filter((n) => !n.isRead).length,
   }
+
+  // --- Prepare simplified context for the chatbot ---
+  const chatContext = {
+    timetables: timetables.map(tt => ({
+        name: tt.name,
+        department: tt.department,
+        semester: tt.semester,
+        status: tt.status,
+        schedule: tt.schedule?.map(s => ({
+            day: s.day,
+            time: s.timeSlot,
+            course: courses.find(c => c._id === s.courseId)?.name,
+            faculty: faculty.find(f => f._id === s.facultyId)?.name,
+            room: rooms.find(r => r._id === s.roomId)?.name,
+        })) || []
+    })),
+    totalCourses: courses.length,
+    totalFaculty: faculty.length,
+  };
+  // ----------------------------------------------------
 
   const recentTimetables = timetables.slice(0, 3)
   const recentNotifications = notifications.slice(0, 3)
@@ -167,10 +193,9 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
-      {/* Sidebar */}
+      {/* --- Sidebar (No Changes) --- */}
       <div className="w-64 bg-white/90 backdrop-blur-sm border-r border-slate-200/50 shadow-lg">
         <div className="p-6 space-y-8">
-          {/* Logo/Brand */}
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
@@ -183,7 +208,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Navigation */}
           <nav className="space-y-2">
             {navigationItems.map((item) => {
               const IconComponent = item.icon
@@ -220,8 +244,6 @@ export default function Dashboard() {
             })}
           </nav>
         </div>
-
-        {/* Bottom Section */}
         <div className="absolute bottom-6 left-6 right-6">
           <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200/50 rounded-xl border border-slate-200/50">
             <div className="flex items-center gap-3">
@@ -237,7 +259,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* --- Main Content (No Changes) --- */}
       <div className="flex-1 overflow-auto">
         <div className="p-8 space-y-8">
           {/* Header */}
@@ -488,6 +510,24 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      
+      {/* ===== CHATBOT IMPLEMENTATION ===== */}
+      <div className="fixed bottom-8 right-8 z-40">
+        <Button 
+            onClick={() => setIsChatOpen(true)}
+            className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300"
+        >
+            <MessageSquare className="h-8 w-8" />
+        </Button>
+      </div>
+
+      <Chatbot 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)}
+        context={chatContext} 
+      />
+      {/* ================================ */}
+
     </div>
   )
 }

@@ -10,7 +10,7 @@ aiRouter.post("/chat", async (req, res) => {
     const { message, context } = req.body;
 
     const systemPrompt = `You are an AI assistant for a Smart Classroom Scheduler application. 
-You help users with scheduling questions, course management, faculty assignments, and room bookings.
+You help users with scheduling questions.
 
 Current context: ${JSON.stringify(context || {})}
 
