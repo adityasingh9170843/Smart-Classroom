@@ -1,4 +1,5 @@
-import { GoogleGenAI } from '@google/genai';
+// backend/controllers/timetableGenerator.js
+import { GoogleGenAI } from "@google/genai";
 import Course from '../models/course.js';
 import Faculty from '../models/Faculty.js';
 import Room from '../models/Room.js';
@@ -8,410 +9,211 @@ import dotenv from 'dotenv';
 
 dotenv.config({ quiet: true });
 
-// Initialize AI with better error handling
-let ai;
+// Initialize AI client
+let genAI;
 try {
   if (!process.env.GOOGLE_API_KEY) {
-    console.error('GOOGLE_API_KEY is not set in environment variables');
-  } else {
-    ai = new GoogleGenAI(process.env.GOOGLE_API_KEY);
-    console.log('Google AI initialized successfully');
+    throw new Error('GOOGLE_API_KEY is not set in environment variables.');
   }
+  genAI = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
+  console.log('Google AI (Gemini) initialized successfully');
 } catch (error) {
-  console.error('Failed to initialize Google AI:', error);
+  console.error('Failed to initialize Google AI:', error.message);
+}
+
+// --- Configuration ---
+const WEEKS = 13;
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const TIME_SLOTS = [
+  { start: '09:00', end: '10:00' },
+  { start: '10:00', end: '11:00' },
+  { start: '11:15', end: '12:15' },
+  { start: '14:15', end: '15:15' },
+  { start: '15:15', end: '16:15' },
+  { start: '16:30', end: '17:30' },
+];
+const BREAK_SLOT = { start: '12:15', end: '13:15' };
+
+/**
+ * Calculates the number of weekly 1-hour sessions a course requires.
+ */
+function getWeeklySessions(course) {
+  if (course.totalHours && Number(course.totalHours) > 0) {
+    return Math.ceil(Number(course.totalHours) / WEEKS);
+  }
+  return Number(course.hoursPerWeek) || 3;
 }
 
 /**
- * Safely parse AI output into JSON array
+ * Cleans and parses the JSON response from the AI.
  */
-function parseAISchedule(text) {
-  let schedule = [];
+function parseAIResponse(text) {
+  if (!text || typeof text !== 'string') return [];
+  const clean = text.replace(/```(?:json)?\n?/gi, '').replace(/```\n?/g, '');
   try {
-    // Remove any markdown code blocks
-    let cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-    
-    // Try direct parse first
-    schedule = JSON.parse(cleanText);
-    
-    // Ensure it's an array
-    if (!Array.isArray(schedule)) {
-      schedule = [];
-    }
-  } catch (err) {
-    console.warn("AI did not return valid JSON. Attempting to extract JSON array...");
-    
-    // Remove markdown code blocks first
-    let cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-    
-    // Try to find JSON array pattern
-    const match = cleanText.match(/\[[\s\S]*\]/);
-    if (match) {
-      try {
-        schedule = JSON.parse(match[0]);
-        if (!Array.isArray(schedule)) {
-          schedule = [];
-        }
-      } catch (err2) {
-        console.error("Failed to parse schedule from AI output:", err2);
-        console.error("AI Response text:", text);
-        schedule = [];
-      }
-    } else {
-      console.error("No JSON array found in AI output");
-      console.error("AI Response text:", text);
-    }
+    const parsed = JSON.parse(clean);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error('Failed to parse AI JSON response:', e);
+    return [];
   }
-  
-  console.log("Parsed schedule entries:", schedule.length);
-  return schedule;
 }
 
 /**
- * Generate sample timetable entries if AI fails
+ * Generates a timetable using only the Gemini AI.
+ * request: { department, semester, academicYear }
  */
-function generateSampleSchedule(courses, faculty, rooms, department, semester) {
-  console.log('Generating sample schedule with data:', {
-    coursesCount: courses.length,
-    facultyCount: faculty.length,
-    roomsCount: rooms.length,
-    department,
-    semester
-  });
-
-  const schedule = [];
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-  const timeSlots = [
-    { start: '09:00', end: '10:00' },
-    { start: '10:00', end: '11:00' },
-    { start: '11:15', end: '12:15' },
-    { start: '12:15', end: '13:15' },
-    { start: '14:15', end: '15:15' },
-    { start: '15:15', end: '16:15' }
-  ];
-
-  // Filter courses and faculty for the department
-  const deptCourses = courses.filter(c => c.department === department);
-  const deptFaculty = faculty.filter(f => f.department === department);
-
-  console.log('Filtered data:', {
-    deptCoursesCount: deptCourses.length,
-    deptFacultyCount: deptFaculty.length,
-    totalRooms: rooms.length
-  });
-
-  if (deptCourses.length === 0 || deptFaculty.length === 0 || rooms.length === 0) {
-    console.warn('Insufficient data to generate sample schedule:', {
-      deptCourses: deptCourses.length,
-      deptFaculty: deptFaculty.length,
-      rooms: rooms.length
-    });
-    return schedule;
-  }
-
-  // Generate some sample entries
-  let entryCount = 0;
-  for (let dayIndex = 0; dayIndex < Math.min(3, days.length); dayIndex++) {
-    for (let slotIndex = 0; slotIndex < Math.min(2, timeSlots.length); slotIndex++) {
-      if (entryCount >= deptCourses.length) break;
-      
-      const course = deptCourses[entryCount % deptCourses.length];
-      const facultyMember = deptFaculty[entryCount % deptFaculty.length];
-      const room = rooms[entryCount % rooms.length];
-      const slot = timeSlots[slotIndex];
-      
-      const entry = {
-        courseId: course._id.toString(),
-        facultyId: facultyMember._id.toString(),
-        roomId: room._id.toString(),
-        day: days[dayIndex],
-        startTime: slot.start,
-        endTime: slot.end,
-        type: course.type || 'lecture'
-      };
-      
-      console.log(`Adding entry ${entryCount + 1}:`, entry);
-      schedule.push(entry);
-      entryCount++;
-    }
-  }
-
-  console.log('Generated sample schedule with', schedule.length, 'entries');
-  return schedule;
-}
-
 export async function generateTimetableWithAI(request) {
-  console.log('=== STARTING TIMETABLE GENERATION ===');
-  console.log('Request received:', JSON.stringify(request, null, 2));
-  
+  console.log('=== STARTING AI TIMETABLE GENERATION ===');
+  console.log('Request:', request);
+
+  if (!genAI) {
+    throw new Error('AI client is not initialized. Check GOOGLE_API_KEY.');
+  }
+
   try {
-    // Validate request
-    if (!request.department) {
-      throw new Error('Department is required');
-    }
-    if (!request.semester) {
-      throw new Error('Semester is required');  
-    }
-    if (!request.academicYear) {
-      throw new Error('Academic year is required');
+    const { department, semester, academicYear } = request;
+    if (!department || !semester || !academicYear) {
+      throw new Error('Department, semester, and academic year are required.');
     }
 
-    console.log('Fetching data from database...');
+    // 1. Fetch all necessary data from the database
+    console.log('Fetching DB data...');
+    const allCourses = await Course.find({});
+    const allFaculty = await Faculty.find({});
+    const allRooms = await Room.find({});
+
+    // Filter data for the specific request
+    const relevantCourses = allCourses.filter(c =>
+      (c.department || '').toLowerCase() === department.toLowerCase() &&
+      Number(c.semester) === Number(semester)
+    );
+
+    if (relevantCourses.length === 0) {
+      throw new Error(`No courses found for ${department}, Semester ${semester}. Please check your database.`);
+    }
+
+    const relevantFaculty = allFaculty.filter(f => (f.department || '').toLowerCase() === department.toLowerCase());
+
+    // 2. Engineer the detailed prompt for Gemini
+    const prompt = `
+      You are an expert university timetable scheduler. Your task is to generate a complete, conflict-free weekly timetable.
+
+      **Input Data:**
+      - Department: "${department}"
+      - Semester: ${semester}
+      - Available Days: ${JSON.stringify(DAYS)}
+      - Available Time Slots: ${JSON.stringify(TIME_SLOTS)}
+      - Mandatory Daily Break (DO NOT schedule classes here): ${BREAK_SLOT.start}-${BREAK_SLOT.end}
+
+      - Courses to Schedule (with required weekly hours):
+        ${relevantCourses.map(c => `- Course Name: "${c.name}", ID: "${c._id}", Weekly Sessions: ${getWeeklySessions(c)}`).join('\n        ')}
+
+      - Available Faculty (with their IDs):
+        ${relevantFaculty.map(f => `- Faculty Name: "${f.name}", ID: "${f._id}"`).join('\n        ')}
+
+      - Available Rooms (with their IDs):
+        ${allRooms.map(r => `- Room Name: "${r.name}", ID: "${r._id}"`).join('\n        ')}
+
+      **Strict Rules You Must Follow:**
+      1.  **Assign One Faculty Per Course:** Each course must be assigned to exactly ONE faculty member for all its weekly sessions.
+      2.  **Schedule All Sessions:** Ensure every course is scheduled for its required number of weekly sessions.
+      3.  **No Conflicts:** A faculty member or a room cannot be in two places at once. Each time slot for a specific resource can only be used once.
+      4.  **Use Provided IDs:** You MUST use the exact 'courseId', 'facultyId', and 'roomId' strings provided in the data above.
+      5.  **Strictly Adhere to Format:** Return ONLY a valid JSON array of schedule entry objects. Do not include any other text, markdown, or explanations.
+
+      **Output JSON Object Structure:**
+      {
+        "courseId": "string",
+        "facultyId": "string",
+        "roomId": "string",
+        "day": "string (e.g., 'Monday')",
+        "startTime": "string (e.g., '09:00')",
+        "endTime": "string (e.g., '10:00')"
+      }
+
+      Generate the full timetable now.
+    `;
+
+    // 3. Call the Gemini API with the corrected model name
+    console.log('Sending request to Gemini AI...');
     
-    const courses = await Course.find({ department: request.department });
-    const faculty = await Faculty.find({ department: request.department });
-    const rooms = await Room.find();
+    // ===== FIXED CODE =====
+    const result = await genAI.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: prompt
+    });
+    
+    // Extract the text from the response correctly
+    const responseText = result.text;
+    
+    // If the above doesn't work, try this alternative approach:
+    // const responseText = result.candidates[0].content.parts[0].text;
+    
+    console.log('AI Response received:', responseText ? 'Success' : 'Empty response');
+    
+    const schedule = parseAIResponse(responseText);
 
-    console.log('Database query results:', {
-      courses: courses.length,
-      faculty: faculty.length,
-      rooms: rooms.length,
-      sampleCourse: courses[0] ? {
-        id: courses[0]._id,
-        name: courses[0].name,
-        department: courses[0].department
-      } : 'No courses found',
-      sampleFaculty: faculty[0] ? {
-        id: faculty[0]._id,
-        name: faculty[0].name,
-        department: faculty[0].department
-      } : 'No faculty found',
-      sampleRoom: rooms[0] ? {
-        id: rooms[0]._id,
-        name: rooms[0].name
-      } : 'No rooms found'
+    if (schedule.length === 0) {
+      console.error("AI Response Text:", responseText);
+      throw new Error('AI failed to generate a valid schedule. The response was empty or invalid JSON.');
+    }
+    console.log(`AI generated ${schedule.length} schedule entries.`);
+
+    // 4. Enrich and Save the Timetable
+    const enrichedSchedule = schedule.map(entry => {
+      const course = relevantCourses.find(c => String(c._id) === entry.courseId);
+      const faculty = relevantFaculty.find(f => String(f._id) === entry.facultyId);
+      const room = allRooms.find(r => String(r._id) === entry.roomId);
+      return {
+        ...entry,
+        courseName: course ? course.name : 'Unknown',
+        facultyName: faculty ? faculty.name : 'Unknown',
+        roomName: room ? room.name : 'Unknown',
+        timeSlot: `${entry.startTime}-${entry.endTime}`
+      };
     });
 
-    // Check if we have sufficient data
-    if (courses.length === 0) {
-      throw new Error(`No courses found for department: ${request.department}. Please add courses first.`);
-    }
-    if (faculty.length === 0) {
-      throw new Error(`No faculty found for department: ${request.department}. Please add faculty first.`);
-    }
-    if (rooms.length === 0) {
-      throw new Error('No rooms found in the system. Please add rooms first.');
-    }
-
-    console.log('Generating schedule...');
-    let schedule = [];
-
-    // Try AI generation first (if available)
-    if (ai && process.env.GOOGLE_API_KEY) {
-      try {
-        console.log('Attempting AI generation...');
-        
-        const coursesList = courses.map(c => `${c.code}: ${c.name} (${c.credits} credits, ${c.type || 'lecture'})`).join('\n');
-        const facultyList = faculty.map(f => `${f.name} (${f.specialization || 'General'})`).join('\n');
-        const roomsList = rooms.map(r => `${r.name} (Capacity: ${r.capacity || 'N/A'}, Type: ${r.type || 'classroom'})`).join('\n');
-
-        const prompt = `Generate a weekly timetable for ${request.department} department, semester ${request.semester}.
-
-COURSES AVAILABLE:
-${coursesList}
-
-FACULTY AVAILABLE:
-${facultyList}
-
-ROOMS AVAILABLE:
-${roomsList}
-
-REQUIREMENTS:
-- Generate a JSON array of schedule entries
-- Use days: monday, tuesday, wednesday, thursday, friday
-- Use time slots: 09:00-10:00, 10:00-11:00, 11:15-12:15, 12:15-13:15, 14:15-15:15, 15:15-16:15
-- Each course should have 2-3 sessions per week
-- No faculty conflicts (same person can't be in two places at once)
-- No room conflicts (same room can't host two classes simultaneously)
-
-Return ONLY this JSON format:
-[
-  {
-    "courseId": "${courses[0]._id}",
-    "facultyId": "${faculty[0]._id}",
-    "roomId": "${rooms[0]._id}",
-    "day": "monday",
-    "startTime": "09:00",
-    "endTime": "10:00",
-    "type": "lecture"
-  }
-]
-
-Use the actual IDs from the data provided above.`;
-
-        console.log('Sending prompt to AI...');
-        
-        const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        
-        console.log("AI Response received:", text.substring(0, 200) + "...");
-        schedule = parseAISchedule(text);
-        
-        console.log(`AI generated ${schedule.length} schedule entries`);
-      } catch (aiError) {
-        console.error('AI generation failed:', aiError.message);
-        console.log('Falling back to sample schedule generation...');
-      }
-    } else {
-      console.log('AI not available, using sample generation...');
-    }
-
-    // If AI didn't generate valid schedule, create a sample one
-    if (schedule.length === 0) {
-      console.log('Generating fallback sample schedule...');
-      schedule = generateSampleSchedule(courses, faculty, rooms, request.department, request.semester);
-    }
-
-    if (schedule.length === 0) {
-      throw new Error('Failed to generate any schedule entries. Check if you have sufficient courses, faculty, and rooms.');
-    }
-
-    console.log("Final schedule to save:", JSON.stringify(schedule, null, 2));
-
-    // Calculate metadata
-    const totalHours = schedule.length;
-    const maxPossibleSlots = 5 * 6; // 5 days, 6 time slots
-    const utilizationRate = Math.round((schedule.length / maxPossibleSlots) * 100);
+    const totalHours = enrichedSchedule.length;
+    const availableSlots = DAYS.length * TIME_SLOTS.length;
+    const utilizationRate = Math.round((totalHours / availableSlots) * 100);
 
     const timetableData = {
-      name: `${request.department} - Semester ${request.semester} ${request.academicYear}`,
-      department: request.department,
-      semester: request.semester.toString(),
-      year: parseInt(request.academicYear),
-      schedule: schedule,
-      conflicts: [],
+      name: `${department} - Semester ${semester} ${academicYear}`,
+      department,
+      semester: String(semester),
+      year: parseInt(academicYear),
+      schedule: enrichedSchedule,
+      conflicts: [], // AI is expected to return a conflict-free schedule
       status: 'draft',
       metadata: {
-        totalHours: totalHours,
-        utilizationRate: utilizationRate,
-        conflictCount: 0,
-      },
+        totalHours,
+        utilizationRate,
+        conflictCount: 0
+      }
     };
-
-    console.log('Creating timetable with data:', {
-      name: timetableData.name,
-      scheduleLength: timetableData.schedule.length,
-      department: timetableData.department,
-      semester: timetableData.semester,
-      year: timetableData.year
-    });
 
     const timetable = new Timetable(timetableData);
-    const createdTimetable = await timetable.save();
-    
-    console.log('Timetable saved successfully with ID:', createdTimetable._id);
+    const created = await timetable.save();
+    console.log(`Timetable saved successfully! ID: ${created._id}`);
 
-    // Create notification
-    try {
-      const notification = new Notification({
-        title: 'Timetable Generated',
-        message: `Successfully generated a new timetable for ${request.department} - Semester ${request.semester} ${request.academicYear} with ${schedule.length} scheduled classes`,
-        type: 'success',
-        isRead: false,
-      });
+    // Create a success notification
+    await new Notification({
+      title: 'AI Timetable Generated',
+      message: `Generated timetable "${created.name}" with ${totalHours} entries.`,
+      type: 'success',
+    }).save();
 
-      await notification.save();
-      console.log('Notification saved successfully');
-    } catch (notifError) {
-      console.error('Failed to save notification:', notifError);
-      // Don't fail the main operation for notification errors
-    }
+    return created;
 
-    console.log('=== TIMETABLE GENERATION COMPLETED SUCCESSFULLY ===');
-    return createdTimetable;
-
-  } catch (error) {
-    console.error('=== TIMETABLE GENERATION FAILED ===');
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
-    
-    // Create error notification
-    try {
-      const errorNotification = new Notification({
-        title: 'Timetable Generation Failed',
-        message: `Failed to generate timetable: ${error.message}`,
-        type: 'error',
-        isRead: false,
-      });
-      await errorNotification.save();
-    } catch (notifError) {
-      console.error('Failed to save error notification:', notifError);
-    }
-    
-    throw new Error(`Failed to generate timetable: ${error.message}`);
-  }
-}
-
-export async function optimizeTimetableWithAI(timetable) {
-  try {
-    console.log('Starting optimization for timetable:', timetable.name);
-    
-    if (!timetable.schedule || timetable.schedule.length === 0) {
-      throw new Error('Cannot optimize empty timetable');
-    }
-
-    const prompt = `Optimize this timetable by reducing conflicts and improving distribution:
-
-Current Schedule:
-${JSON.stringify(timetable.schedule, null, 2)}
-
-Please return an optimized version in the same JSON format. Consider:
-- Better time distribution
-- Reduced faculty conflicts
-- Improved room utilization
-- Better spacing between classes
-
-Return only the JSON array:`;
-
-    let optimizedSchedule = [...timetable.schedule]; // Default to current schedule
-
-    if (ai && process.env.GOOGLE_API_KEY) {
-      try {
-        const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-
-        const parsed = parseAISchedule(text);
-        if (parsed.length > 0) {
-          optimizedSchedule = parsed;
-        }
-      } catch (aiError) {
-        console.error('AI optimization failed, using current schedule:', aiError);
-      }
-    }
-
-    // Update the timetable with optimized schedule
-    timetable.schedule = optimizedSchedule;
-    timetable.metadata.utilizationRate = Math.round((optimizedSchedule.length / 30) * 100);
-    await timetable.save();
-
-    const notification = new Notification({
-      title: 'Timetable Optimized',
-      message: `AI optimization completed for ${timetable.name}. Schedule updated with ${optimizedSchedule.length} entries.`,
-      type: 'info',
-      isRead: false,
-    });
-
-    await notification.save();
-
-    return {
-      success: true,
-      optimizedSchedule,
-      conflictsResolved: Math.floor(Math.random() * 3),
-      suggestions: [
-        'Schedule distribution has been improved across the week',
-        'Faculty workload is now more balanced',
-        'Room utilization has been optimized',
-        'Class timing conflicts have been minimized'
-      ],
-    };
-  } catch (error) {
-    console.error('AI Optimization error:', error);
-    throw new Error(`Failed to optimize timetable: ${error.message}`);
+  } catch (err) {
+    console.error('Error in generateTimetableWithAI:', err);
+    // Create an error notification
+    await new Notification({
+      title: 'Timetable Generation Failed',
+      message: err.message || 'An unknown error occurred.',
+      type: 'error',
+    }).save();
+    throw err; // Re-throw the error to be caught by the route handler
   }
 }

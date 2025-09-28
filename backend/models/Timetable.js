@@ -7,7 +7,7 @@ const ScheduleEntrySchema = new mongoose.Schema(
     roomId: { type: String, required: true },
     day: {
       type: String,
-      enum: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+      enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
       required: true,
     },
     startTime: { type: String, required: true },

@@ -149,6 +149,24 @@ export default function CoursesPage() {
     ),
   },
   {
+    key: "type",
+    label: "Type",
+    render: (course) => (
+      <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200">
+        {course.type}
+      </Badge>
+    ),
+  },
+  {
+    key: "hoursPerWeek",
+    label: "Hours per Week",
+    render: (course) => (
+      <Badge className="bg-red-100 text-red-800 border-red-200 hover:bg-red-200">
+        {course.hoursPerWeek}
+      </Badge>
+    ),
+  },
+  {
     key: "semester",
     label: "Semester",
     render: (course) => (

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import Timetable from "../models/Timetable.js";
-import { generateTimetableWithAI, optimizeTimetableWithAI } from "../utils/timetableGenerator.js";
+import { generateTimetableWithAI} from "../utils/timetableGenerator.js";
 
 export const timetablesRouter = Router();
 
@@ -75,15 +75,15 @@ timetablesRouter.post("/generate", async (req, res) => {
 });
 
 // Optimize timetable using AI
-timetablesRouter.post("/:id/optimize", async (req, res) => {
-  try {
-    const timetable = await Timetable.findById(req.params.id);
-    if (!timetable) return res.status(404).json({ error: "Timetable not found" });
+// timetablesRouter.post("/:id/optimize", async (req, res) => {
+//   try {
+//     const timetable = await Timetable.findById(req.params.id);
+//     if (!timetable) return res.status(404).json({ error: "Timetable not found" });
 
-    const optimizedTimetable = await optimizeTimetableWithAI(timetable);
-    res.json(optimizedTimetable);
-  } catch (error) {
-    console.error("Error optimizing timetable:", error);
-    res.status(500).json({ error: "Failed to optimize timetable" });
-  }
-});
+//     const optimizedTimetable = await optimizeTimetableWithAI(timetable);
+//     res.json(optimizedTimetable);
+//   } catch (error) {
+//     console.error("Error optimizing timetable:", error);
+//     res.status(500).json({ error: "Failed to optimize timetable" });
+//   }
+// });

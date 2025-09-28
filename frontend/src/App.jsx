@@ -5,6 +5,7 @@ import CoursesPage from "./pages/Courses"
 import FacultyPage from "./pages/Faculty"
 import RoomPage from "./pages/Rooms"
 import TimetablePage from "./pages/Timetable"
+import NotificationsPage from "./pages/Notifications"
 function App() {
  
 
@@ -17,6 +18,7 @@ function App() {
    <Route path="/faculty" element={<FacultyPage />} />
    <Route path="/rooms" element={<RoomPage />} />
    <Route path="/timetables" element={<TimetablePage />} />
+   <Route path="/notifications" element={<NotificationsPage />} />
    </Routes>
    </Router>  
     

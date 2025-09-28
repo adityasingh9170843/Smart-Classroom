@@ -15,6 +15,9 @@ export function CourseForm({ initialData = null, onSubmit, loading }) {
     year: new Date().getFullYear(),
     description: "",
     prerequisites: [],
+    // NEW fields
+    type: "lecture",
+    hoursPerWeek: 3,
   };
 
   const [formData, setFormData] = useState(defaultData);
@@ -32,6 +35,8 @@ export function CourseForm({ initialData = null, onSubmit, loading }) {
         year: initialData.year ?? new Date().getFullYear(),
         description: initialData.description || "",
         prerequisites: initialData.prerequisites || [],
+        type: initialData.type || "lecture",
+        hoursPerWeek: initialData.hoursPerWeek ?? 3,
       });
     } else {
       setFormData(defaultData);
@@ -42,31 +47,38 @@ export function CourseForm({ initialData = null, onSubmit, loading }) {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "credits" || name === "semester" || name === "year" 
-        ? Number(value) 
-        : value
+      [name]:
+        name === "credits" ||
+        name === "semester" ||
+        name === "year" ||
+        name === "hoursPerWeek"
+          ? Number(value)
+          : value,
     }));
   };
 
   const addPrerequisite = () => {
-    if (prerequisiteInput.trim() && !formData.prerequisites.includes(prerequisiteInput.trim())) {
-      setFormData(prev => ({
+    if (
+      prerequisiteInput.trim() &&
+      !formData.prerequisites.includes(prerequisiteInput.trim())
+    ) {
+      setFormData((prev) => ({
         ...prev,
-        prerequisites: [...prev.prerequisites, prerequisiteInput.trim()]
+        prerequisites: [...prev.prerequisites, prerequisiteInput.trim()],
       }));
       setPrerequisiteInput("");
     }
   };
 
   const removePrerequisite = (prerequisite) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      prerequisites: prev.prerequisites.filter(p => p !== prerequisite)
+      prerequisites: prev.prerequisites.filter((p) => p !== prerequisite),
     }));
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       addPrerequisite();
     }
@@ -129,7 +141,7 @@ export function CourseForm({ initialData = null, onSubmit, loading }) {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Credits */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -180,6 +192,41 @@ export function CourseForm({ initialData = null, onSubmit, loading }) {
             className="w-full"
           />
         </div>
+
+        {/* Hours per week (NEW) */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Hours / Week *
+          </label>
+          <Input
+            type="number"
+            name="hoursPerWeek"
+            value={formData.hoursPerWeek}
+            onChange={handleChange}
+            required
+            min="1"
+            max="40"
+            className="w-full"
+          />
+        </div>
+      </div>
+
+      {/* Type (NEW) */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-2">
+          Type *
+        </label>
+        <select
+          name="type"
+          value={formData.type}
+          onChange={handleChange}
+          className="w-full rounded-md border border-slate-200 px-3 py-2 bg-white"
+          required
+        >
+          <option value="lecture">Lecture</option>
+          <option value="lab">Lab</option>
+          <option value="tutorial">Seminar</option>
+        </select>
       </div>
 
       {/* Description */}
@@ -221,7 +268,7 @@ export function CourseForm({ initialData = null, onSubmit, loading }) {
               Add
             </Button>
           </div>
-          
+
           {formData.prerequisites.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {formData.prerequisites.map((prerequisite, index) => (
