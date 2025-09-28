@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+"use client"
+
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { X } from "lucide-react"
 
 export function CourseForm({ initialData = null, onSubmit, loading }) {
   const defaultData = {
@@ -15,15 +17,13 @@ export function CourseForm({ initialData = null, onSubmit, loading }) {
     year: new Date().getFullYear(),
     description: "",
     prerequisites: [],
-    // NEW fields
     type: "lecture",
     hoursPerWeek: 3,
-  };
+  }
 
-  const [formData, setFormData] = useState(defaultData);
-  const [prerequisiteInput, setPrerequisiteInput] = useState("");
+  const [formData, setFormData] = useState(defaultData)
+  const [prerequisiteInput, setPrerequisiteInput] = useState("")
 
-  // Prefill form when editing — reset to defaults when initialData is null
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -37,271 +37,294 @@ export function CourseForm({ initialData = null, onSubmit, loading }) {
         prerequisites: initialData.prerequisites || [],
         type: initialData.type || "lecture",
         hoursPerWeek: initialData.hoursPerWeek ?? 3,
-      });
+      })
     } else {
-      setFormData(defaultData);
+      setFormData(defaultData)
     }
-  }, [initialData]);
+  }, [initialData])
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]:
-        name === "credits" ||
-        name === "semester" ||
-        name === "year" ||
-        name === "hoursPerWeek"
-          ? Number(value)
-          : value,
-    }));
-  };
+        name === "credits" || name === "semester" || name === "year" || name === "hoursPerWeek" ? Number(value) : value,
+    }))
+  }
 
   const addPrerequisite = () => {
-    if (
-      prerequisiteInput.trim() &&
-      !formData.prerequisites.includes(prerequisiteInput.trim())
-    ) {
+    if (prerequisiteInput.trim() && !formData.prerequisites.includes(prerequisiteInput.trim())) {
       setFormData((prev) => ({
         ...prev,
         prerequisites: [...prev.prerequisites, prerequisiteInput.trim()],
-      }));
-      setPrerequisiteInput("");
+      }))
+      setPrerequisiteInput("")
     }
-  };
+  }
 
   const removePrerequisite = (prerequisite) => {
     setFormData((prev) => ({
       ...prev,
       prerequisites: prev.prerequisites.filter((p) => p !== prerequisite),
-    }));
-  };
+    }))
+  }
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
-      e.preventDefault();
-      addPrerequisite();
+      e.preventDefault()
+      addPrerequisite()
     }
-  };
+  }
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+    e.preventDefault()
+    onSubmit(formData)
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Course Code */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Course Code *
-          </label>
-          <Input
-            type="text"
-            name="code"
-            value={formData.code}
-            onChange={handleChange}
-            placeholder="e.g., CS101"
-            required
-            className="w-full"
-          />
-        </div>
+    <div className="relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/20 via-blue-900/10 to-cyan-900/20 rounded-2xl" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-cyan-500/5 to-blue-500/10 rounded-2xl" />
 
-        {/* Department */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Department *
-          </label>
-          <Input
-            type="text"
-            name="department"
-            value={formData.department}
-            onChange={handleChange}
-            placeholder="e.g., Computer Science"
-            required
-            className="w-full"
-          />
-        </div>
-      </div>
+      <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 shadow-2xl">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Course Code */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-slate-200 mb-2 tracking-wide">Course Code *</label>
+              <div className="relative">
+                <Input
+                  type="text"
+                  name="code"
+                  value={formData.code}
+                  onChange={handleChange}
+                  placeholder="e.g., CS101"
+                  required
+                  className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-white/15"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            </div>
 
-      {/* Course Name */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">
-          Course Name *
-        </label>
-        <Input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="e.g., Introduction to Programming"
-          required
-          className="w-full"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Credits */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Credits *
-          </label>
-          <Input
-            type="number"
-            name="credits"
-            value={formData.credits}
-            onChange={handleChange}
-            required
-            min="1"
-            max="10"
-            className="w-full"
-          />
-        </div>
-
-        {/* Semester */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Semester *
-          </label>
-          <Input
-            type="number"
-            name="semester"
-            value={formData.semester}
-            onChange={handleChange}
-            required
-            min="1"
-            max="8"
-            className="w-full"
-          />
-        </div>
-
-        {/* Academic Year */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Academic Year *
-          </label>
-          <Input
-            type="number"
-            name="year"
-            value={formData.year}
-            onChange={handleChange}
-            required
-            min="2020"
-            max="2030"
-            className="w-full"
-          />
-        </div>
-
-        {/* Hours per week (NEW) */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Hours / Week *
-          </label>
-          <Input
-            type="number"
-            name="hoursPerWeek"
-            value={formData.hoursPerWeek}
-            onChange={handleChange}
-            required
-            min="1"
-            max="40"
-            className="w-full"
-          />
-        </div>
-      </div>
-
-      {/* Type (NEW) */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">
-          Type *
-        </label>
-        <select
-          name="type"
-          value={formData.type}
-          onChange={handleChange}
-          className="w-full rounded-md border border-slate-200 px-3 py-2 bg-white"
-          required
-        >
-          <option value="lecture">Lecture</option>
-          <option value="lab">Lab</option>
-          <option value="tutorial">Seminar</option>
-        </select>
-      </div>
-
-      {/* Description */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">
-          Description
-        </label>
-        <Textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Enter course description..."
-          rows={4}
-          className="w-full"
-        />
-      </div>
-
-      {/* Prerequisites */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">
-          Prerequisites
-        </label>
-        <div className="space-y-3">
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              value={prerequisiteInput}
-              onChange={(e) => setPrerequisiteInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Enter prerequisite course code"
-              className="flex-1"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addPrerequisite}
-              className="px-4"
-            >
-              Add
-            </Button>
+            {/* Department */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-slate-200 mb-2 tracking-wide">Department *</label>
+              <div className="relative">
+                <Input
+                  type="text"
+                  name="department"
+                  value={formData.department}
+                  onChange={handleChange}
+                  placeholder="e.g., Computer Science"
+                  required
+                  className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-white/15"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            </div>
           </div>
 
-          {formData.prerequisites.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {formData.prerequisites.map((prerequisite, index) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className="flex items-center gap-1 px-3 py-1"
-                >
-                  {prerequisite}
-                  <button
-                    type="button"
-                    onClick={() => removePrerequisite(prerequisite)}
-                    className="ml-1 hover:bg-red-100 rounded-full p-0.5"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
+          {/* Course Name */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-slate-200 mb-2 tracking-wide">Course Name *</label>
+            <div className="relative">
+              <Input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="e.g., Introduction to Programming"
+                required
+                className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-white/15"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* Submit Button */}
-      <div className="flex gap-3 pt-4">
-        <Button
-          type="submit"
-          disabled={loading}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-300"
-        >
-          {loading ? "Saving..." : initialData ? "Update Course" : "Add Course"}
-        </Button>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Credits */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-slate-200 mb-2 tracking-wide">Credits *</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  name="credits"
+                  value={formData.credits}
+                  onChange={handleChange}
+                  required
+                  min="1"
+                  max="10"
+                  className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-white/15"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            </div>
+
+            {/* Semester */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-slate-200 mb-2 tracking-wide">Semester *</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  name="semester"
+                  value={formData.semester}
+                  onChange={handleChange}
+                  required
+                  min="1"
+                  max="8"
+                  className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-white/15"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            </div>
+
+            {/* Academic Year */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-slate-200 mb-2 tracking-wide">Academic Year *</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  name="year"
+                  value={formData.year}
+                  onChange={handleChange}
+                  required
+                  min="2020"
+                  max="2030"
+                  className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-white/15"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            </div>
+
+            {/* Hours per week */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-slate-200 mb-2 tracking-wide">Hours / Week *</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  name="hoursPerWeek"
+                  value={formData.hoursPerWeek}
+                  onChange={handleChange}
+                  required
+                  min="1"
+                  max="40"
+                  className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-white/15"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            </div>
+          </div>
+
+          {/* Type */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-slate-200 mb-2 tracking-wide">Type *</label>
+            <div className="relative">
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-white/15 appearance-none cursor-pointer"
+                required
+              >
+                <option value="lecture" className="bg-slate-800 text-white">
+                  Lecture
+                </option>
+                <option value="lab" className="bg-slate-800 text-white">
+                  Lab
+                </option>
+                <option value="tutorial" className="bg-slate-800 text-white">
+                  Seminar
+                </option>
+              </select>
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-slate-200 mb-2 tracking-wide">Description</label>
+            <div className="relative">
+              <Textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Enter course description..."
+                rows={4}
+                className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-white/15 resize-none"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
+            </div>
+          </div>
+
+          {/* Prerequisites */}
+          <div className="space-y-4">
+            <label className="block text-sm font-semibold text-slate-200 mb-2 tracking-wide">Prerequisites</label>
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <Input
+                    type="text"
+                    value={prerequisiteInput}
+                    onChange={(e) => setPrerequisiteInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Enter prerequisite course code"
+                    className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:bg-white/15"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addPrerequisite}
+                  className="bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 hover:border-cyan-400/50 transition-all duration-300 px-6 rounded-xl"
+                >
+                  Add
+                </Button>
+              </div>
+
+              {formData.prerequisites.length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {formData.prerequisites.map((prerequisite, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-sm border border-cyan-400/30 text-cyan-100 rounded-xl hover:from-cyan-500/30 hover:to-blue-500/30 transition-all duration-300"
+                    >
+                      {prerequisite}
+                      <button
+                        type="button"
+                        onClick={() => removePrerequisite(prerequisite)}
+                        className="ml-1 hover:bg-red-400/20 rounded-full p-1 transition-colors duration-200"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-4 pt-6">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-3 shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300 rounded-xl font-semibold tracking-wide hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </div>
+              ) : initialData ? (
+                "Update Course"
+              ) : (
+                "Add Course"
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
-    </form>
-  );
+    </div>
+  )
 }
