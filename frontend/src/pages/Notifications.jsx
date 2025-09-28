@@ -186,15 +186,7 @@ export default function NotificationsPage() {
           </nav>
         </div>
 
-        <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200/50 rounded-xl border border-slate-200/50 flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-slate-400 to-slate-500 rounded-lg flex items-center justify-center">
-            <Users className="w-4 h-4 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-800 truncate">Admin User</p>
-            <p className="text-xs text-slate-500">System Administrator</p>
-          </div>
-        </div>
+        
       </div>
 
       {/* Main Content */}
