@@ -6,6 +6,21 @@ Here’s a polished **README.md** draft for your Smart Classroom project:
 
 A **MERN-based Smart Classroom Management System** that helps manage **faculties, rooms, and courses**, while automatically generating an **AI-powered timetable** that assigns the **right faculty to the right course**. It also includes a **chatbot** for students and faculty to query the timetable in real time.
 
+<img width="1878" height="922" alt="image" src="https://github.com/user-attachments/assets/6e84e2ac-f10f-4896-a203-c8b110168886" />
+
+<img width="1888" height="902" alt="image" src="https://github.com/user-attachments/assets/564d1596-83ea-49f7-ac3a-ccbe5bb9c3be" />
+
+<img width="1897" height="910" alt="image" src="https://github.com/user-attachments/assets/afe3955a-f8c3-4843-bcb4-d7c34f7a4165" />
+
+<img width="1918" height="908" alt="image" src="https://github.com/user-attachments/assets/1e5d818d-4bcf-44af-b254-ca0fd8330e75" />
+
+<img width="1907" height="916" alt="image" src="https://github.com/user-attachments/assets/be5e4200-8d7f-4d45-96b2-a14073f32989" />
+
+<img width="1917" height="906" alt="image" src="https://github.com/user-attachments/assets/2baee206-6a8f-4a5c-8051-0eba748eb138" />
+
+<img width="1905" height="897" alt="image" src="https://github.com/user-attachments/assets/2f71c22a-ff22-474b-a858-22c57de01878" />
+
+
 ---
 
 ## 🚀 Features
