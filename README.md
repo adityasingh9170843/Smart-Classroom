@@ -1,6 +1,4 @@
-Here’s a polished **README.md** draft for your Smart Classroom project:
 
----
 
 # 📚 Smart Classroom & AI Timetable Scheduler
 
