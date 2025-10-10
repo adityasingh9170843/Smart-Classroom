@@ -6,14 +6,12 @@ dotenv.config();
 
 // --- Configuration ---
 const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
-const CITY = process.env.WEATHER_CITY || 'Delhi'; // Default city
+const CITY = process.env.WEATHER_CITY || 'mumbai'; // Default city
 const COUNTRY_CODE = process.env.WEATHER_COUNTRY_CODE || 'IN'; // Default country
 
 const WEATHER_API_URL = `https://api.openweathermap.org/data/2.5/weather?q=${CITY},${COUNTRY_CODE}&appid=${OPENWEATHER_API_KEY}`;
 
-/**
- * Fetches weather data and creates a notification if it's raining.
- */
+
 async function checkWeatherAndNotify() {
   if (!OPENWEATHER_API_KEY) {
     console.warn('Weather checker is disabled. OPENWEATHER_API_KEY is not set.');
