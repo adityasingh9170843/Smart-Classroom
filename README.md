@@ -54,7 +54,7 @@ A **MERN-based Smart Classroom Management System** that helps manage **faculties
 * **Backend**: Node.js, Express.js
 * **Database**: MongoDB
 * **AI**: Timetable generation algorithm (genetic algorithm/constraint satisfaction)
-* **Chatbot**: AI-powered assistant (Dialogflow / Rasa / custom ML model)
+* **Chatbot**: AI-powered assistant 
 
 ---
 
